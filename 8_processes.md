@@ -22,7 +22,7 @@
 * Use `<seealso>` tags to link documentation for overloads or related methods.
 * Use the `<inheritdoc/>` tag for method overrides or interface implementations to avoid repeating documentation.  Add a <remarks> section to document specifics of the implementation (though this is actually quite rare, in practice).
 
-      ```
+      ```c#
       /// <inheritdoc/>
       bool Exists { get; }
       ```
