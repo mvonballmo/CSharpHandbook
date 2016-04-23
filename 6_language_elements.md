@@ -557,16 +557,18 @@ You should use the pattern and support classes for event-handling provided by th
 
 The ternary operator is a specialized form of an `if`/`then` statement with the following form:
 
-    ```c#
-    return (_value != null) ? Value.ToString() : "NULL";
-    ```
+      ```c#
+      return (_value != null) ? Value.ToString() : "NULL";
+      ```
 If the condition (`_value != null` in this case) is true, the operator returns the value after the question mark; otherwise, it returns the value after the colon.
+
 The coalescing operator is a specialized form of the ternary operator, which has the following form:
 
-    ```c#
-    return Target ?? Source;
-    ```
+      ```c#
+      return Target ?? Source;
+      ```
 The operator returns the expression before the two question marks if it is not `null`; otherwise, it returns the expression after the two question marks.
+
 * Use these operators for simple expressions and results.
 * Do not use these operators with long conditions and values; instead, use an `if`/`then` statement.
 * Do not break statements with these operators in them over multiple lines.
@@ -645,34 +647,34 @@ The operator returns the expression before the two question marks if it is not `
 
 Use the `ConditionalAttribute` instead of the `#ifdef`/`#endif` pair wherever possible (i.e. for methods or classes).
 
-    ```c#
-    public class SomeClass
-    {
-      [Conditional("TRACE_ON")]
-      public static void Msg(string msg)
+      ```c#
+      public class SomeClass
       {
-        Console.WriteLine(msg);
+        [Conditional("TRACE_ON")]
+        public static void Msg(string msg)
+        {
+          Console.WriteLine(msg);
+        }
       }
-    }
-    ```
+      ```
       
 ### \#if/#else/#endif
 
 For other conditional compilation, use a static method in a static class instead of scattering conditional options throughout the code.
 
-    ```c#
-    public static class EncodoCompilerOptions
-    {
-      public static bool DeveloperBuild()
+      ```c#
+      public static class EncodoCompilerOptions
       {
-    #if ENCODO_DEVELOPER
-        return true;
-    #else
-        return false;
-    #endif
+        public static bool DeveloperBuild()
+        {
+      #if ENCODO_DEVELOPER
+          return true;
+      #else
+          return false;
+      #endif
+        }
       }
-    }
-    ```
+      ```
 
 This approach has the following advantages:
 
@@ -682,8 +684,8 @@ This approach has the following advantages:
 
 ## Footnotes
 
-* <a name="footnote_1"></a>[1] In scenarios that require a significant amount of boxing and un-boxing, value types perform poorly as compared to reference types.
-* <a name="footnote_2"></a>[2] This is noted only because some style guides explicitly require that the last statement in an “if/else if” block is an empty “else” block if none is otherwise needed.
-* <a name="footnote_3"></a>[3] CodeSpell is a good and relatively inexpensive spellchecker for Visual Studio 2005 and 2008; if you’re already using ReSharper, the Agent Smith plugin provides superb integration with multiple dictionaries.
-* <a name="footnote_4"></a>[4] A newline separating the comment from its code is the recommended style, as it tends to separate the comments and the code into separate, but interleaved blocks. This is, however, just a suggestion.
-* <a name="footnote_5"></a>[5] One drawback is that the editor doesn’t display the “unused” code as disabled, as it does when using compiler options directly.
+1. <a name="footnote_1"></a>In scenarios that require a significant amount of boxing and un-boxing, value types perform poorly as compared to reference types.
+1. <a name="footnote_2"></a>This is noted only because some style guides explicitly require that the last statement in an “if/else if” block is an empty “else” block if none is otherwise needed.
+1. <a name="footnote_3"></a>CodeSpell is a good and relatively inexpensive spellchecker for Visual Studio 2005 and 2008; if you’re already using ReSharper, the Agent Smith plugin provides superb integration with multiple dictionaries.
+1. <a name="footnote_4"></a>A newline separating the comment from its code is the recommended style, as it tends to separate the comments and the code into separate, but interleaved blocks. This is, however, just a suggestion.
+1. <a name="footnote_5"></a>One drawback is that the editor doesn’t display the “unused” code as disabled, as it does when using compiler options directly.
