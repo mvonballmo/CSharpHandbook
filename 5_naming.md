@@ -49,7 +49,7 @@ Enumerated element | Pascal
 Properties | Pascal
 Generic parameters | Pascal
 Public or protected readonly or const field | Pascal
-Private field | Camel with leading underscore [1](#footnote_1)
+Private field | Camel with leading underscore [\[1\]](#footnote_1)
 Method argument | Camel
 Local variable | Camel
 Attributes | Pascal with “Attribute” suffix
@@ -68,7 +68,7 @@ Event handlers | Pascal with “EventHandler” suffix
  
 ### Namespaces
 * Do not use a “library” prefix for types (e.g. instead of `QnoDatabase`, use a more descriptive name, like `MetaDatabase` or `RelationalDatabase`).
-* Avoid very generic type names (e.g. `Element`, `Node`, `Message` or `Log`), which collide with types from the framework or other commonly-used libraries. Use a more specific name, if at all possible. [2](#footnote_2)
+* Avoid very generic type names (e.g. `Element`, `Node`, `Message` or `Log`), which collide with types from the framework or other commonly-used libraries. Use a more specific name, if at all possible. [\[2\]](#footnote_2)
 * If there are multiple types encapsulating similar concepts (but with different implementations, for example), you should use a common suffix to group them. For example, all the expression node types in the Encodo expressions library end in the word Expression.
 
 ### Interfaces
@@ -78,7 +78,7 @@ Event handlers | Pascal with “EventHandler” suffix
 ### Classes
 
 * If a class implements a single interface, it should reflect this by incorporating the interface name into its own (e.g. `MetaList` implements `IList`).
-* Static classes used as toolkits of static functions [3](#footnote_3) should use the suffix “Tools” and should go in a file ending in “Tools.cs”.
+* Static classes used as toolkits of static functions [\[3\]](#footnote_3) should use the suffix “Tools” and should go in a file ending in “Tools.cs”.
 
 ### Properties
 * Properties should be nouns or adjectives.
@@ -111,7 +111,7 @@ Event handlers | Pascal with “EventHandler” suffix
       }
       ```
       
-  You should write:
+    You should write:
 
       ```c#
       public IDataList<GenericObject> CreateList(IMetaClass cls)
@@ -123,7 +123,7 @@ Event handlers | Pascal with “EventHandler” suffix
 * Methods that set a single property value should begin with the verb `Set`.
 * The most generalized version of a method name should be reserved for the method that the framework wishes to encourage or that is used most often. An example from [6] is reproduced below:
 
-  > Suppose you have two event-delivery mechanisms, one for immediate (synchronous) delivery and one for delayed (asynchronous) delivery. The names `sendEventNow()` and `sendEventLater()` suggest themselves. Now, if you want to encourage your users to use synchronous delivery (e.g., because it is more lightweight), you could name the synchronous method `sendEvent()` and keep `sendEventLater()` for the asynchronous case.
+    > Suppose you have two event-delivery mechanisms, one for immediate (synchronous) delivery and one for delayed (asynchronous) delivery. The names `sendEventNow()` and `sendEventLater()` suggest themselves. Now, if you want to encourage your users to use synchronous delivery (e.g., because it is more lightweight), you could name the synchronous method `sendEvent()` and keep `sendEventLater()` for the asynchronous case.
 
 ### Extension Methods
 
@@ -306,7 +306,7 @@ Appointment | appointment | appt
 
 ### User Interface Components
 
-UI Elements should not include a suffix that indicates their control type unless there is another member that already uses that name or there are two controls that would use that name.[4](#footnote_4) If a suffix must be used, use one from the table below that best matches the control’s type.
+UI Elements should not include a suffix that indicates their control type unless there is another member that already uses that name or there are two controls that would use that name.[\[4\]](#footnote_4) If a suffix must be used, use one from the table below that best matches the control’s type.
 
 UI Element | Suffix | Example
 --- | --- | ---
