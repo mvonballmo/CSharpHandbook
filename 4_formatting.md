@@ -318,6 +318,7 @@ Do not place an empty line in the following places:
 ### Chained Method Calls
 
 * Chained method calls can be formatted onto multiple lines; if one chained function call is formatted onto its own line, then they should all be.
+
       ```c#
       string contents = header.
         Replace("{Year}", DateTime.Now.Year.ToString()).
