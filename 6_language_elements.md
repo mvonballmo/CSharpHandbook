@@ -557,16 +557,16 @@ You should use the pattern and support classes for event-handling provided by th
 
 The ternary operator is a specialized form of an `if`/`then` statement with the following form:
 
-      ```c#
-      return (_value != null) ? Value.ToString() : "NULL";
-      ```
+```c#
+return (_value != null) ? Value.ToString() : "NULL";
+```
 If the condition (`_value != null` in this case) is true, the operator returns the value after the question mark; otherwise, it returns the value after the colon.
 
 The coalescing operator is a specialized form of the ternary operator, which has the following form:
 
-      ```c#
-      return Target ?? Source;
-      ```
+```c#
+return Target ?? Source;
+```
 The operator returns the expression before the two question marks if it is not `null`; otherwise, it returns the expression after the two question marks.
 
 * Use these operators for simple expressions and results.
@@ -647,34 +647,34 @@ The operator returns the expression before the two question marks if it is not `
 
 Use the `ConditionalAttribute` instead of the `#ifdef`/`#endif` pair wherever possible (i.e. for methods or classes).
 
-      ```c#
-      public class SomeClass
-      {
-        [Conditional("TRACE_ON")]
-        public static void Msg(string msg)
-        {
-          Console.WriteLine(msg);
-        }
-      }
-      ```
+```c#
+public class SomeClass
+{
+  [Conditional("TRACE_ON")]
+  public static void Msg(string msg)
+  {
+    Console.WriteLine(msg);
+  }
+}
+```
       
 ### \#if/#else/#endif
 
 For other conditional compilation, use a static method in a static class instead of scattering conditional options throughout the code.
 
-      ```c#
-      public static class EncodoCompilerOptions
-      {
-        public static bool DeveloperBuild()
-        {
-      #if ENCODO_DEVELOPER
-          return true;
-      #else
-          return false;
-      #endif
-        }
-      }
-      ```
+```c#
+public static class EncodoCompilerOptions
+{
+  public static bool DeveloperBuild()
+  {
+#if ENCODO_DEVELOPER
+    return true;
+#else
+    return false;
+#endif
+  }
+}
+```
 
 This approach has the following advantages:
 
