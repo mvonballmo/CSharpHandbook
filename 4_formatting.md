@@ -30,6 +30,7 @@ _This section applies to .NET 3.5 and newer._
 ### Methods
 
 * Completely empty functions, like constructors, should have a space between brackets placed on the same line:
+
       ```C#
       SomeClass(string name)
         : base(name)
@@ -45,10 +46,12 @@ _This section applies to .NET 3.5 and newer._
 _See 7.6 – Exit points (continue and return) for advice on how to use return statements._
 
 * Use single-line, bracketed syntax for one-line returns with simple conditions:
+
       ```c#
       if (Count != other.Count) { return false; }
       ```
 * If a return statement is not the only statement in a method, it should be separated from other code by a single newline (or a line with only a bracket on it).
+
       ```c#
       if (a == 1) { return true; }
       
@@ -56,6 +59,7 @@ _See 7.6 – Exit points (continue and return) for advice on how to use return s
       ```
 
 * Do _not_ use else with return statements (use the style shown above instead):
+
       ```c#
       if (a == 1)
       {
@@ -72,6 +76,7 @@ _See 7.6 – Exit points (continue and return) for advice on how to use return s
 * Contents under switch statements should be indented.
 * Braces for a case-label are not indented; this maintains a nice alignment with the brackets from the switch-statement.
 * Use braces for longer code blocks under case-labels; leave a blank line above the break-statement to improve clarity.
+
       ```c#
       switch (flavor)
       {
@@ -92,6 +97,7 @@ _See 7.6 – Exit points (continue and return) for advice on how to use return s
       }
        ```
 * Use braces to enforce tighter scoping for local variables used for only one case-label.
+
       ```c#
 
       switch (flavor)
@@ -111,6 +117,7 @@ _See 7.6 – Exit points (continue and return) for advice on how to use return s
       }
       ```
 * If brackets are used for a case-label, the break-statement should go inside those brackets so that the bracket provides some white-space from the next case-label.
+
       ```c#
       switch (flavor)
       {
@@ -139,10 +146,12 @@ _See 7.6 – Exit points (continue and return) for advice on how to use return s
 * C# has a different operator precedence than Pascal or C, so you can write `context != null && context.Count > 0` without confusing the compiler. However, you should use the form `(context != null) && (context.Count > 0)` for legibility’s sake.
 * Do not use parentheses around the parameter(s) in a lambda expression.
 * To make it more readable, use parentheses around the condition of a ternary expression if it uses an infix operator.
+
       ```c#
       return (_value != null) ? Value.ToString() : "NULL";
       ```
 * Prefix operators (e.g. `!`) and method calls should not have parentheses around them.
+
       ```c#
       return !HasValue ? Value.ToString() : "EMPTY";
       ```
@@ -172,6 +181,7 @@ Do not place an empty line in the following places:
 
 * After another empty line; the Encodo style uses only single empty lines.
 * Between retrieval code and handling for that code. Instead, they should be formatted together.
+
       ```c#
       IMetaReadableObject obj = context.Find<IMetaReadableObject>();
       if (obj == null)
@@ -192,12 +202,15 @@ Do not place an empty line in the following places:
 * Lines after such a line-break at such a boundary should be indented.
 * The separator (e.g. a comma) between elements formatted onto multiple lines goes on the same line after the element; the IDE is much more helpful when formatting that way.
 * The most natural line-breaking boundary is often before and after a list of elements. For example, the following method call has line-breaks at the beginning and end of the parameter list.
-      ```c#
+
+      ```C#
       people.DataSource = CurrentCompany.Employees.GetList(
         connection, metaClass, GetFilter(), null
       );
       ```
+      
 * If one of the parameters is much longer, then you add line-breaking between the parameters; in that case, all parameters are formatted onto their own lines:
+
       ```c#
       people.DataSource = CurrentCompany.Employees.GetList(
         connection,
@@ -207,6 +220,7 @@ Do not place an empty line in the following places:
       );
       ```
 * Note in the examples above that the parameters are indented. If the assignment or method call was longer, they would no longer fit on the same line. In that case, you should use two levels of indenting.
+
       ```c#
       Application.Model.people.DataSource = 
         Global.ApplicationEnvironment.CurrentCompany.Employees.GetList(
@@ -217,6 +231,7 @@ Do not place an empty line in the following places:
         );
       ```
 * If there is a logical grouping for parameters, you may apply line-breaking at those boundaries instead (breaking the all-on-one-line or each-on-its-own-line rule stated above). For example, the following method specifies Cartesian coordinates:
+
       ```c#
       Geometry.PlotInBox(
         "Global.Applications.MainWindow",
@@ -228,6 +243,7 @@ Do not place an empty line in the following places:
 ### Method Calls
 
 * The closing parenthesis of a method call goes on its own line to “close” the block (see example below).
+
       ```c#
       result.Messages.Log(
         Level.Error, 
@@ -239,6 +255,7 @@ Do not place an empty line in the following places:
       );
       ```
 * If the result of calling a method is assigned to a variable, the call may be on the same line as the assignment if it fits.
+
       ```c#
       people.DataSource = CurrentCompany.Employees.GetList(
         connection,
@@ -262,6 +279,7 @@ Do not place an empty line in the following places:
 
 * Stay consistent with line-breaking in related methods within a class; if one is broken up onto multiple lines, then all related methods should be broken up onto multiple lines.
 * The closing brace of a method definition goes on the same line as the last parameter (unlike method calls). This avoids having a line with a solitary closing parenthesis followed by a line with a solitary opening brace.
+
       ```c#
       public static void SetupLookupDefinition(
         RepositoryItemLookUpEdit lookupOptions,
@@ -271,11 +289,13 @@ Do not place an empty line in the following places:
       }
       ``` 
 * Generic method constraints should be specified on their own line, with a single indent.
+
       ```c#
       string GetNames<T>(IMetaCollection<T> elements, string separator, NameOption options 
         where T : IMetaBase;
       ```
 * The generic method constraint should line up with the parameters, if they are specified on their own lines.
+
       ```c#
       public static void SetupLookupFromData<T>(
         RepositoryItemLookUpEdit lookupOptions, 
@@ -289,6 +309,7 @@ Do not place an empty line in the following places:
 ### Multi-Line Text
 
 * Longer string-formatting statements with newlines should be formatted using the @-operator and should avoid using concatenation:
+
       ```c#
       result.SqlText = String.Format(
         @"FROM person
@@ -325,7 +346,9 @@ Do not place an empty line in the following places:
         Replace("{User}", "ENCODO").
         Replace("{DateTime}", DateTime.Now.ToString());
       ```
+
 * If a line of a chained method call opens a new logical context, then ensuing lines should be indented to indicate this. For example, the following example joins tables together, with the last three statements applied to the last joined table. The indenting helps make this clear.
+
       ```c#
       query.
         Join(Settings.Relations.Company).
@@ -342,6 +365,7 @@ Do not place an empty line in the following places:
 * Anonymous delegates are always written on multiple lines for clarity.
 * Do not use parentheses for anonymous delegates if there are no parameters.
 * Anonymous delegates should be written with an indent, as follows:
+
       ```c#
       IMetaCollection<IMetaProperty> persistentProps = 
         model.ReferencedProperties.FindAll(
@@ -352,6 +376,7 @@ Do not place an empty line in the following places:
         );
       ```
 * Even very short delegates benefit from writing in this fashion (the alternative is much messier and not so obviously a delegate when browsing through the code):
+
       ```c#
       public string[] Keys
       {
@@ -367,6 +392,7 @@ Do not place an empty line in the following places:
       }
       ``` 
 * This notation is also useful for long function calls with many or long parameters. If, for example, a delegate is one of the parameters, then you should make a block out of the whole function call, like this:
+
       ```c#
       _context = new DataContext(
         Settings.Default.ConfigFileName, 
@@ -381,6 +407,7 @@ Do not place an empty line in the following places:
 In the example above each parameter is on its own line, as required.
 
 * Here’s a fancy one, with a delegate in a constructor base; note that the closing parenthesis is on the same line as the closing brace of the delegate definition.
+
       ```c#
       public Application()
         : base(
@@ -398,16 +425,19 @@ This section applies to .NET 3.5 and newer.
 
 * All rules for standard method calls also apply to method calls with lambda expressions.
 * Very short lambda expressions may be written as a simple parameter on the same line as the method call:
+
       ```c#
       ReportError(msg => MessageBox.Show(msg));
       ```
 * Longer lambda expressions should go on their own line, with the closing parenthesis of the method call closing the block on another line. Any calls attached to the result—like `ToList()` or `Count()`—should go on the same line as the closing parenthesis.
+
       ```c#
       people.DataSource = CurrentCompany.Employees.Where(
         item => item.LessonTimeId == null
       ).ToList();
       ```
 * Longer lambda expressions should not be both wrapped and used in a `foreach`-statement; instead, use two statements as shown below.
+
       ```c#
       var appointmentsForDates = data.Appointments.FindAll(
         appt => (appt.StartTime >= startDate) && (appt.EndTime <= endDate)
@@ -426,10 +456,12 @@ _This section applies to .NET 3.5 and newer._
 Longer initialization blocks should go on their own line; the rest can be formatted in the following ways (depending on line-length and preference):
 
 * Shorter initialization blocks (one or two properties) can be specified on the same line:
+
       ```c#
       var personOne = new Person { LastName = "Miller", FirstName = "John" };
       ```
 * The `new`-clause is on the same line as the declaration:
+
       ```c#
       IViewPropertySizeAspect sizeAspect = new ViewPropertySizeAspect
       {
@@ -440,6 +472,7 @@ Longer initialization blocks should go on their own line; the rest can be format
       prop.Aspects.Add(sizeAspect);
       ```
 * The new-clause is on its own line:
+
       ```c#
       IViewPropertySizeAspect sizeAspect = 
         new ViewPropertySizeAspect
@@ -451,10 +484,12 @@ Longer initialization blocks should go on their own line; the rest can be format
       prop.Aspects.Add(sizeAspect);
       ```
 * The initializer is nested within the method-call on the same line as the declaration:
+
       ```c#
       prop.Aspects.Add(new ViewPropertySizeAspect { VerticalUnits = height });
       ```
 * The initializer is nested within the method-call on its own line:
+
       ```c#
       prop.Aspects.Add(
         new ViewPropertySizeAspect
