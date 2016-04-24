@@ -20,8 +20,6 @@ Whether or not to use interfaces is a hotly-debated topic. On the one hand, inte
 
 Where interfaces can also be very useful is in restricting write-access to certain properties or containers. That is, an interface can be declared with only a getter, but the implementation includes both a getter and setter. This allows an application to set the property when it works with an internal implementation, but to restrict the code receiving the interface to a read-only property. See “7.21 Restricting Access with Interfaces” for more information.
 
-<a name="footnote_1">[1]</a> One exception to this rather strictly enforced rule is for classes that simply cannot be abstract. This will be the case for user-interface components that interact with a visual designer. The Visual Studio designer, for example, requires that all components be non-abstract and include a default constructor in order to be used. In these cases, empty virtual methods that throw a `NotImplementedException` are the only alternative. If you must use such a method, include a comment explaining the reason.
-
 ##	Modifying interfaces
 
 * In general, be extremely careful of modifying interfaces that are used by code not under your control (i.e. code that has shipped and been integrated into other codebases).
@@ -73,7 +71,7 @@ Use assertions at the beginning of a method to assert preconditions; assert post
       ```c#
       if (connection == null) { throw new ArgumentNullException("connection"); }
       ```
-* If the assertion cannot be formulated in code, add a comment describing it instead.
+* If the assertion cannot be formulated in code, add a comment describing it instead. [2](#footnote_2)
 * If class invariants are not supported, describe the restrictions in the class documentation or note the invariant in commented form at the end of the class.
 * All methods and properties used to test pre-conditions must have the same visibility as the method being called.
 
@@ -107,4 +105,8 @@ With use-cases in mind, here are some points to consider when building a class.
 
 * Be as stingy as possible when making methods public; smaller APIs are easier to understand.
 * If another assembly needs a type to be public, consider whether that type could not remain internalized if the API were higher-level. Use the Object Browser to examine the public API.
-* To this end, frameworks that are logically split into multiple assemblies can use the `InternalsVisibleTo` attributes to make “friend assemblies” and avoid making elements public. Given three assemblies, `Quino`, `QuinoWinform` and `QuinoWeb` (of which a standard Windows application would include only the first two), the `Quino` assembly can make its internals visible to `QuinoWinform` 
+* To this end, frameworks that are logically split into multiple assemblies can use the `InternalsVisibleTo` attributes to make “friend assemblies” and avoid making elements public. Given three assemblies, `Quino`, `QuinoWinform` and `QuinoWeb` (of which a standard Windows application would include only the first two), the `Quino` assembly can make its internals visible to `QuinoWinform`.
+
+<a name="footnote_1">[1]</a> One exception to this rather strictly enforced rule is for classes that simply cannot be abstract. This will be the case for user-interface components that interact with a visual designer. The Visual Studio designer, for example, requires that all components be non-abstract and include a default constructor in order to be used. In these cases, empty virtual methods that throw a `NotImplementedException` are the only alternative. If you must use such a method, include a comment explaining the reason.
+
+<a name="footnote_2">[2]</a> The spec# project at Microsoft Research provides an integration of Design-By-Contract mechanisms into the C# language; at some point in the future, this may be worthwhile to include.
