@@ -2,66 +2,64 @@
 
 ## Goals
 
-The intent of this document is not to codify current practice at Encodo as it stands at the time of writing. Instead, this handbook has the following aims:
+This handbook has the following aims and guiding principles:
 
-*	To maximize readability and maintainability by prescribing a unified style.
-*	To maximize efficiency with logical, easy-to-understand and justifiable rules that balance code safety with ease-of-use.
-*	To maximize the usefulness of code-completion tools and accommodate IDE- or framework-generated code.
-*	To prevent errors and bugs (especially hard-to-find ones) by minimizing complexity and applying proven design principles.
-*	To improve performance and reliability with a list of best practices.
+*	Increase readability and maintainability with a unified style.
+*	Minimize complexity with proven design principles
+*	Increase code safety and prevent hard-to-find errors through best practices.
+*	Maximize effectiveness of coding tools.
+* Accommodate IDE- or framework-generated code.
+* Provide justifications and examples for rules.
 
-Wherever possible, guidelines provide one or more reasons to justify why they should be used.
-
-Whereas the Encodo Style draws mostly from in-house programming experience, it also includes ideas from Microsoft’s C# coding style [1, 2], and benefits from both the IDesign [3] and Philips [4] coding styles as corroborative sources.
+The style and formatting guidelines draw mostly from in-house programming experience, but also include ideas from Microsoft’s C# coding style [1, 2], and benefits from both the IDesign [3] and Philips [4] coding styles.
 
 ## Scope
 
-This handbook mixes recommendations for programming with C#, .NET and the Encodo libraries. It includes rules for document layout (like whitespace and element placement) as well as design guidelines for elements and best practices for their use. It also assumes that you are using _Microsoft Visual Studio 2015_ or newer. Many recommendations only apply to newer versions of the C# language, up to and including version 6.0.[1]
+This handbook includes:
 
-This document is a work-in-progress and covers only those issues that Encodo has encountered and codifies only that which Encodo has put into practice and with which Encodo has experience. Therefore, some elements of style and design as well as some implicit best practices are probably not yet documented.
+* General programming advice and best practices
+* General formatting and style recommendations
+* C#-specific sections
+* Encodo-specific sections
+* Library-specific sections (e.g. for Quino)
 
-Please speak up if you think there is something missing.
+The assumed environment is:
+
+* _Microsoft Visual Studio 2015_ or newer
+* C# 6.0 or newer
+
+For older versions of Visual Studio, use what you can or refer to older versions of this handbook.
 
 ## Fixing Problems in the Handbook
 
+This document is a work-in-progress. Please speak up or contribute if you think there is something missing.
+
 *	If a guideline is not sufficiently clear, recommend a clearer formulation.
-*	If you don’t like a guideline, try to get it changed or removed, but don’t just ignore it. Your code reviewer might not be aware that you are special and not subject to the rules.
+*	If you don’t like a guideline, try to get it changed or removed, but don’t just ignore it. Your code reviewer is most likely unaware that you are special and not subject to the rules.
 
 ## Applying the Guidelines
 
-At this point, previous versions of the handbook included the following rather draconian formulation: “Unless otherwise noted, these guidelines are not optional, nor are they up to interpretation.” Whereas this is broadly true, common practice at Encodo has shown that immediate and strict enforcement is neither desirable nor feasible, especially in the area of code formatting.
+* Unless otherwise noted, these guidelines are not optional, nor are they up to interpretation.
+*	A reviewer always has the right to correct mistakes and aberrations, but is not obligated to do so in every review.
+*	Please note issues with the guidelines during a review. These ad-hoc changes should flow into the guidelines if enough parties agree.
 
-*	A reviewer always has the right to correct mistakes and aberrations from the guidelines, but is not obligated to do so for each and every review.
-*	Problems with the guidelines can be noted ad-hoc during a review. These ad-hoc changes should flow into the guidelines if enough parties agree.
-
-Since code is often aggressively refactored, it must not be perfect on initial check-in; in general, the following rough rules apply:
-*	Naming conventions must comply for all identifiers
-*	Spelling errors should be fixed
-*	Documentation is not required
-*	Formatting must roughly comply (> 90% of the code should comply); gross transgressions—like noncompliance with parenthesis placement—must be fixed immediately
-
-Subsequent check-ins and work in this code will incrementally bring that code closer to the guidelines until it is in full compliance.
+The handbook defines the goal. Use iterations and refactoring to incrementally bring the code closer to full compliance.
 
 ## Fixing Problems in Code
 
-If code is non-conforming, it should be fixed at the earliest opportunity.
-*	If the error is small and localized, you should fix it with the next check-in (noting during the code review that the change was purely stylistic and unrelated to other bug fixes).
-*	If the error is larger and/or involves renaming or moving files, you should check the change in separately in order to avoid confusion.
-*	If the problem takes too long to repair quickly, you should create an issue in the bug-tracker to address the problem at a later time.
+Fix non-conforming code at the earliest opportunity.
+
+*	Fix small and localized errors immediately, in a "cleanup" commit.
+*	Always use a separate commit to rename or move files.
+*	Create an issue for larger problems that cannot be fixed quickly.
 
 ## Working with an IDE
 
-The coding conventions in this document are to be strictly followed for code that is written by hand and code that is generated by Encodo tools. However, projects will contain code from other sources as well.
-Modern IDEs generate code; this is very helpful and saves a lot of work. In order to profit from this, we will need to turn a blind eye to style infractions in generated code. Specific exceptions to rules are mentioned with the rules themselves, but here are the general guidelines:
-*	Use preferences and options to enforce Encodo Style as much as possible. See “8.3 ¬¬¬¬− ReSharper” for configuration instructions.
-*	Names entered in visual designers must conform to the Encodo coding guidelines; auto-generated control names are not acceptable if they are non-conforming.
-*	Any code generated by Encodo tools must conform to the Encodo coding guidelines
-*	Don’t bother enforcing Encodo guidelines for files that are generated by non-Encodo tools (e.g. *.Designer files).
-*	In files containing hand-written code as well as auto-generated code, Encodo guidelines should be enforced for member order, spacing and namespaces for all elements, but not necessarily naming (e.g. event handlers generated by the environment may contain underscores instead of being Pascal-case). Though not absolutely required, it is still strongly recommended to use ReSharper to rename these elements as well.
-*	“Format Document” is your friend and should be used to re-format auto-generated code to the Encodo Style guidelines as much as possible.
-*	Use the highest warning level available (level 4 in Visual Studio) and make sure all warnings are addressed (either by fixing the code or explicitly ignoring them) before checking in code.
-*	Release builds should treat warnings as errors to make sure that all warnings are removed before release.
+Modern IDEs generate code; this is very helpful and saves a lot of work. Turn a blind eye to style infractions in generated code.
 
-
-  [1] If you’re using an older version of the Visual Studio IDE, you can either back-port the guidelines in this version or simply refer to older versions of this handbook, which were written for Visual Studio 2008 and 2005.
-
+*	Configure your IDE to produce code that is as close to the guidelines as possible.
+*	Update names for visual-design elements and event handlers manually, if needed.
+*	Write code generators to produce conforming code.
+*	Do not update code generated by tools not under your control (e.g. *.Designer files).
+*	Use “Format Document” to reformat auto-generated code.
+*	Use the highest warning level available (level 4 in Visual Studio) and address all warnings (either by fixing the code or explicitly ignoring them).

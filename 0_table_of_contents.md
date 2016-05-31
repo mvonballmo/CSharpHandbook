@@ -1,10 +1,10 @@
-# Encodo C\# Handbook
+# Encodo Programming Handbook
 
-## Conventions, Style & Best Practices
+## Best Practices, Conventions, Formatting and Style
 
 ### Abstract
 
-This document covers many aspects of programming with C#, from naming, structural and formatting conventions to best practices for using existing and developing new code.
+This document covers many aspects of programming, from best practices for using existing and developing new code to naming, structural and formatting conventions.
 
 ### Authors
 
