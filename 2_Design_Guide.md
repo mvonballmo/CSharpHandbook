@@ -4,7 +4,7 @@ In general, design decisions that involve thinking about the following topics sh
 
 ## Abstractions
 
-The first rule of design is “don’t overdesign”. Overdesign leads to a framework that offers unused functionality and has interfaces that are difficult to understand and implement. Only create abstractions where there will be more than one implementation or where there is a reasonable need to provide for other implementations in the future.
+The first rule of design is: don’t overdo it (YAGNI). Overdesign leads to a framework that offers unused functionality and has interfaces that are difficult to understand and implement. Only create abstractions where there will be more than one implementation or where there is a reasonable need to provide for other implementations in the future.
 
 This leads directly to the second rule of design: “don’t under-design”. Understand your problem domain well enough before starting to code so that you accommodate reasonably foreseeable additional requirements. For example, you need to figure out whether multiple implementations will be required (in which case you should define interfaces) and whether any of those implementations will share code (in which case abstract interfaces or one or more abstract base classes are in order). You should create abstractions where they prevent repeated code—applying the DRY principle—or where they provide decoupling.
 
@@ -110,3 +110,24 @@ With use-cases in mind, here are some points to consider when building a class.
 <a name="footnote_1">[1]</a> One exception to this rather strictly enforced rule is for classes that simply cannot be abstract. This will be the case for user-interface components that interact with a visual designer. The Visual Studio designer, for example, requires that all components be non-abstract and include a default constructor in order to be used. In these cases, empty virtual methods that throw a `NotImplementedException` are the only alternative. If you must use such a method, include a comment explaining the reason.
 
 <a name="footnote_2">[2]</a> The spec# project at Microsoft Research provides an integration of Design-By-Contract mechanisms into the C# language; at some point in the future, this may be worthwhile to include.
+
+## Namespaces
+
+* Nesting depth is inversely related to abstraction. Declare high-level abstractions in the outer layers (e.g. `Encodo.Quino.Data`) and concrete types in inner layers (e.g. `Encodo.Quino.Data.Ado`).
+* The namespace hierarchy should only be deep enough to reflect the actual complexity. Deep hierarchies are more  difficult to browse and understand.
+* Avoid making too many namespaces; instead, use catch-all namespace suffixes, like “Utilities”, “Core” or “General” until it is clearer whether a class or group of classes warrant their own namespace. Refactoring is your friend here.
+
+## Assemblies
+
+* Use a separate assembly to improve decoupling and reduce dependencies.
+* Top-level application assemblies should have as little code as possible. Use class libraries for most logic.
+
+The example below illustrates the projects for a solution called “Calculator” with a _WPF_ application, a web-API application and a console application.
+* `Calculator.Core`
+* `Calculator.Core.Web`
+* `Calculator.Core.Wpf`
+* `Calculator.Web.Api`
+* `Calculator.Wpf`
+* `Calculator.Console`
+
+The first three define libraries of functionality that is used by the next four applications. The server and console only use the `Calculator.Core` library whereas the _Winforms_ and _WPF_ applications use their respective libraries. Separating the renderer-dependent code into a separate library makes it much easier to add another application using the same renderer but performing a slightly different task. Only highly application-dependent code should be defined directly in an application project.

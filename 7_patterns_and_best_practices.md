@@ -22,7 +22,7 @@ A side effect is defined as a change in an object as a result of reading a prope
 * Writing a property may cause a side effect.
 * Methods have side effects by definition.
 * Avoid writing methods that return results and cause side effects. A method should either retrieve information or it should execute an operation, but not both.
- 
+
 ## Null Handling
 
 * If a value of `null` is allowed for a parameter of an interface type, consider making an empty implementation of that interface (named with the prefix `Null`).
@@ -54,7 +54,7 @@ A side effect is defined as a change in an object as a result of reading a prope
       }
       ```
     Additionally, you should make an instance of this empty implementation available via a global static. This makes it easier to write code that uses the interface, as it can assert that the parameter is non-`null` and callers can simply pass in the empty implementation to satisfy the pre-condition.
- 
+
 ## Casting
 
 * Use the `as`-operator when testing and using a type.  If you are just testing a type, use the is-operator.
@@ -63,7 +63,7 @@ A side effect is defined as a change in an object as a result of reading a prope
       Class1 other = obj as Class1;
       if (other == null) { return false; }
       ```
-* If you are using the type of an object to route to a type-specific method, then you can use the `is`-operator and the casting operator, as shown below. 
+* If you are using the type of an object to route to a type-specific method, then you can use the `is`-operator and the casting operator, as shown below.
 
       ```c#
       if (this is IMetaProperty)
@@ -84,7 +84,7 @@ A side effect is defined as a change in an object as a result of reading a prope
       ```c#
       ((IMetaClass)obj).RunShow();
       ```
-      
+
 ## Conversions
 
 C# types can define `explicit` and `implicit` conversions to and from other types.
@@ -93,7 +93,7 @@ C# types can define `explicit` and `implicit` conversions to and from other type
 * Generally, you should only provide implicit conversions between types that are in the same domain (like converting between string representations).
 * Do not provide implicit conversions if the conversion would cause data-loss.
 * Implicit conversions cannot throw exceptions; explicit conversions can. Use `InvalidCastException` for such errors.
- 
+
 ## Exit points (continue and return)
 * Multiple return statements are allowed if all exit points are relatively close to one another. For example, the following code has two, clearly visible exit points.
 
@@ -164,13 +164,13 @@ C# types can define `explicit` and `implicit` conversions to and from other type
       ```c#
       foreach (SearchResult search in searches)
       {
-        if (search.Path.Contains("CN=")) 
+        if (search.Path.Contains("CN="))
         {
           // Work with valid searches
         }
       }
       ```
-      
+
 ## Object Lifetime
 
 * Always use the `using` statement with objects implementing `IDisposable` to limit their lifetimes.
@@ -187,7 +187,7 @@ C# types can define `explicit` and `implicit` conversions to and from other type
 * Make sure that `Dispose` can be called multiple times safely; all other methods should raise an `ObjectDisposedException` if `Dispose` has already been called.
 * If there is a more appropriate domain-specific name for Dispose, implement the IDisposable interface explicitly and provide a method with the new name that calls Dispose.
 * Call the `GC.SuppressFinalize` method to prevent `Finalize` from being executed if `Dispose()` has already been called.
-* If you implement `Dispose`, implement `Finalize` only if you actually have costly external resources. 
+* If you implement `Dispose`, implement `Finalize` only if you actually have costly external resources.
 * `Finalize` should simply include a call to `Dispose`.
 * There are performance penalties for implementing `Finalize`, so proceed with caution.
 * `Finalize` should never be `public`; call only the `base.Finalize()` method directly.
@@ -211,7 +211,7 @@ C# types can define `explicit` and `implicit` conversions to and from other type
 Some value types have both Pascal- and camel-case versions. Though `string` is simply an alias of `String`, you should not mix and match them everywhere. Instead, follow the rules below.
 
 * Use types from the `System` namespace when calling static functions (e.g. `String.Format` or `String.IsNullOrEmpty`).
-* Use the value types when declaring variables or fields (e.g. `string` instead of `String`). 
+* Use the value types when declaring variables or fields (e.g. `string` instead of `String`).
 
 ## Using Strings
 
@@ -237,7 +237,7 @@ Some value types have both Pascal- and camel-case versions. Though `string` is s
 
 * Use the generic version of a class if available (e.g. use `IList<T>` instead of `IList`).
 * Do not use casting in generic classes; use a generic constraint (`where`) instead.
-* Use generic parameters and constraints instead of forcing a base type. 
+* Use generic parameters and constraints instead of forcing a base type.
 * Avoid constraints in delegates.
 * Avoid constraints in generic methods; consider whether the problem can be solved another way.
 * If inheriting from both a generic and non-generic interface, implement the non-generic version explicitly and implement it using the generic interface (e.g. when implementing `IEnumerable` and `IEnumberable<T>`).
@@ -481,7 +481,7 @@ This is a fairly serious versioning issue, and one of the main reasons why we pu
 _This section applies to .NET 3.5 and newer._
 
 The introduction of the keyword `var` for implicitly-typed variables is a boon to writing legible code. Using `var` can eliminate a lot of repeated text from code and make the intent much clearer. However, the goal is to make code more legible, not just to use implicit typing as much as possible. [\[1\]](#footnote_1)
- 
+
 * It is not sufficient that the code compile; a human reader must also be able to (relatively) easily understand the code.
 * You should always use semantically relevant names; this goes doubly so for local variables using `var`.
 * Do not use `var` when the return type is a basic type, like `int` or `string`.
@@ -491,10 +491,10 @@ The introduction of the keyword `var` for implicitly-typed variables is a boon t
 
 usage of `var`:
 
-* Use `var` when you have to; when you are using anonymous types. 
-* Use `var` when the type of the declaration is obvious from the initializer, especially if it is an object creation. This eliminates redundancy. 
-* Consider using `var` if the code emphasizes the semantic "business purpose" of the variable and downplays the "mechanical" details of its storage. 
-* Use explicit types if doing so is necessary for the code to be correctly understood and maintained. 
+* Use `var` when you have to; when you are using anonymous types.
+* Use `var` when the type of the declaration is obvious from the initializer, especially if it is an object creation. This eliminates redundancy.
+* Consider using `var` if the code emphasizes the semantic "business purpose" of the variable and downplays the "mechanical" details of its storage.
+* Use explicit types if doing so is necessary for the code to be correctly understood and maintained.
 * Use descriptive variable names regardless of whether you use "var". Variable names should represent the semantics of the variable, not details of its storage; `decimalRate` is bad; `interestRate` is good.
 
 ###	Examples
@@ -537,7 +537,7 @@ One case in which you may return error codes instead of throwing exceptions is w
 * If you must use error codes, do not `return` them; use `out` and `ref` parameters instead.
 * Use `out` and `ref` parameters as little as possible.
 * Instead of using many `out` and `ref` parameters, consider defining a `struct` instead; this improves the maintainability of the API.
- 
+
 ## Restricting Access with Interfaces
 
 One advantage in using interfaces over abstract classes is that interfaces can restrict write-access to properties or lists. That is, the interface declares a getter, but no setter so that clients of the interface can only read the property. However, the backing implementation is free to add a setter as well, allowing the creator of the backing object to set the property externally, if desired.
@@ -545,12 +545,12 @@ One advantage in using interfaces over abstract classes is that interfaces can r
 The following example illustrates this principle for properties:
 
 ```c#
-interface IMaker 
+interface IMaker
 {
   bool Enabled { get; }
 }
 
-class Maker : IMaker 
+class Maker : IMaker
 {
   bool Enabled { get; set; }
 }
@@ -581,9 +581,9 @@ In this way, the client of the interface cannot call `Add()` or `Remove()` on th
 
 ###	Strategies
 
-* Exceptions are the primary means of signaling errors (see 7.24.3 – Exceptions). 
+* Exceptions are the primary means of signaling errors (see 7.24.3 – Exceptions).
 * Consider carefully whether an error is truly exceptional or whether the component should handle the error and set a property to indicate a status instead. This is especially true of code that performs an asynchronous task (e.g. a communications component), where the initiation point is separated from the completion point.
-* Do not design methods that change error-handling strategy depending on a parameter; use the Try*-pattern instead. 
+* Do not design methods that change error-handling strategy depending on a parameter; use the Try*-pattern instead.
 * If a method is expected to encounter one or more errors, don’t use exceptions; use an `IMessageRecorder` instead.
 * Reserve the result for semantically relevant data. If there is no semantically relevant result, use `void`. The following function is incorrect because -1 is not a semantically relevant result for the method name.
 
@@ -608,22 +608,22 @@ In this way, the client of the interface cannot call `Add()` or `Remove()` on th
         // Return actual number of people.
       }
       ```
-      
+
 ###	Error Messages
 
 * The standards for error messages are the same as for any other text that might be shown to a user; use grammatically correct English (though translations may also be provided).
 * Avoid question marks and exclamation points in messages (even assertion messages). Use the error level or exception type to indicate severity or let the handler of the exception determine what level of urgency to assign.
 * Messages should always end in a period.
-* Lower-level, developer messages should be logged to sources that are available only to those with permission to view lower-level details. 
+* Lower-level, developer messages should be logged to sources that are available only to those with permission to view lower-level details.
 * Applications should avoid showing sensitive information to end-users. This applies especially to web applications, which must never show exception traces in production code. The exact message returned by an exception can vary depending on the permission level of the executing code.
-* Be as specific as possible when throwing exceptions. 
-* The message should include as much information as possible, though it is highly recommended to provide both a longer, low-level message (for logging and debugging) and a shorter, high-level message for presenting to the user. 
+* Be as specific as possible when throwing exceptions.
+* The message should include as much information as possible, though it is highly recommended to provide both a longer, low-level message (for logging and debugging) and a shorter, high-level message for presenting to the user.
 * Error messages should describe how the user or developer can avoid the exception.
- 
+
 ###	The Try* Pattern
 
 The Try\* pattern is used by the .NET framework. Generally, Try\*-methods accept an `out` parameter on which to attempt an operation, returning true if it succeeds.
- 
+
 * If you provide a method using the Try* pattern (), you should also provide a non-try-based, exception-throwing variant as well.
 
       ```c#
@@ -653,7 +653,7 @@ In the example above, you’ll note the parse process also accepts an `IMessageR
 
 ###	Defining Exceptions
 
-* Do not simply create an exception type for every different error. 
+* Do not simply create an exception type for every different error.
 * Create a new type only if you want to expose additional properties on the exception; otherwise, use a standard type.
 * Use a custom exception to hold any information that more completely describes the error (e.g. error codes or structures).
 
@@ -726,7 +726,7 @@ In the example above, you’ll note the parse process also accepts an `IMessageR
 
 ###	Wrapping Exceptions
 
-* Only catch an exception if you plan to wrap it in another exception, if you plan to handle it by logging or setting an internal state, or 
+* Only catch an exception if you plan to wrap it in another exception, if you plan to handle it by logging or setting an internal state, or
 * Use an empty throw statement to re-throw the original exception in order to preserve the stack-trace.
 * Wrapped exceptions should _always_ include the original exception in order to preserve the stack-trace.
 * Lower-level exceptions from an implementation-specific subsection should be caught and wrapped before being allowed to bubble up to implementation-independent code (e.g. when handling database exceptions).
@@ -746,7 +746,8 @@ In the example above, you’ll note the parse process also accepts an `IMessageR
 
 ## Generated code
 
-* Avoid modifying generated code unless there is an extremely good reason for doing so. 
+* Use partial classes for generated code.
+* Avoid modifying generated code unless there is an extremely good reason for doing so.
 * Use a custom build step to perform the modification to make sure that the required change is not lost if the environment re-generates the file.
 * Do not add application logic to `AssemblyInfo.cs`; add only attributes.
 
@@ -821,7 +822,7 @@ public class DataTransmitter
   public event EventHandler<DataBundleEventArgs> DataReceived;
 }
 ```
-      
+
 This is the class way of loosely coupling components; any component that is interested in receiving data can simply attach to this event, like this:
 
 ```c#
@@ -847,7 +848,7 @@ var listener = new DataListener(transmitter);
 ```
 
 The transmitter and listener can be defined in completely different assemblies and need no dependency on any common code (other than the .NET runtime) in order to compile and run. If this is an absolute _must_ for your component, then this is the pattern to use for all events. Just be aware that the loose coupling may introduce _semantic_ errors—errors in usage that the compiler will not notice.
-For example, suppose the transmitter is extended to include a new event, NoDataAvailableReceived. 
+For example, suppose the transmitter is extended to include a new event, NoDataAvailableReceived.
 
 ```c#
 public class DataTransmitter

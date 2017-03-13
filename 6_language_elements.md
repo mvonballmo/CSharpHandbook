@@ -1,5 +1,27 @@
 # Language Elements
 
+## Files
+
+* Place each type (classes, interfaces, enums, etc.) in a separate file.
+* Each file should include a header, with the following form:
+  ```csharp
+  // <copyright file="Filename.cs" company="Encodo Systems AG">
+  //   Copyright (c) 2017 Encodo Systems AG. All rights reserved.
+  // </copyright>
+  // <license>
+  //   This file is subject to the terms and conditions defined in the 'LICENSE' file.
+  // </license>
+  ```
+  A solution should include licensing conditions in a file named `LICENSE`.
+* Namespace `using` statements should go at the very top of the file, just after the header and just before the namespace declaration.
+* The namespaces at the top of the file should be in alphabetical order, with the exception that `System.*` assemblies come first.
+
+## Namespaces
+
+* Do not use the global namespace; the only exception is for ASP.NET pages that are generated into the global namespace.
+* Avoid fully-qualified type names; use the `using` statement instead.
+* If the IDE inserts a fully-qualified type name in your code, you should fix it. If the unadorned name conflicts with other already-included namespaces, make an alias for the class with a `using` clause.
+
 ## Declaration Order
 
 * Constructors (in descending order of complexity)
@@ -17,28 +39,26 @@
 * The visibility keyword is always the first modifier.
 * The `const` or `readonly` keyword, if present, comes immediately after the visibility modifier.
 * The static keyword, if present, comes after the visibility modifier and readonly modifier.
+  ```csharp
+  private readonly static string DefaultDatabaseName = "admin";
+  ```
 
-      ```c#
-      private readonly static string DefaultDatabaseName = "admin";
-      ```
-      
 ## Constants
 
-* Declare all constants other than `0`, `1`, `true`, `false` and `null`. 
+* Declare all constants other than `0`, `1`, `true`, `false` and `null`.
 * Use `true` and `false` only for assignment, never for comparison.
 * Avoid passing `true` or `false` for parameters; use an `enum` or constants to impart meaning instead.
 * If there is a logical connection between two constants, indicate this by making the initialization of one dependent on the other.
+  ```csharp
+  public const int DefaultCacheSize = 25;
+  public const int DefaultGranularity = DefaultCacheSize / 5;
+  ```
 
-      ```c#
-      public const int DefaultCacheSize = 25;
-      public const int DefaultGranularity = DefaultCacheSize / 5;
-      ```
-      
 ### readonly vs. const
 
 The difference between `const` and `readonly` is that `const` is compiled and `readonly` is initialized at runtime.
 
-* Use `const` only when the value really is constant (e.g. `NumberDaysInWeek`); otherwise, use `readonly`. 
+* Use `const` only when the value really is constant (e.g. `NumberDaysInWeek`); otherwise, use `readonly`.
 * Though `readonly` for references only prevents writing of the reference, not the attached value, it is still a helpful hint for both the compiler and the reader.
 
 ### Strings and Resources
@@ -49,71 +69,75 @@ The difference between `const` and `readonly` is that `const` is compiled and `r
 * Configuration data should be moved into application settings as soon as possible.
 ## Properties
 * In the event that setting a property caused an exception, then the existing value should be restored.
+* Make properties immutable wherever possible.
 * Use read-only properties if there is no logical reason for calling code to be able to change the value.
 * Properties should be commutative; that is, it should not matter in which order you set them. Avoid enforcing an ordering by using a method to execute code that you would want to execute from the property setter. The following example is incorrect because setting the password before setting the name causes a login failure.
+  ```csharp
+  class SecuritySystem
+  {
+    private string _userName;
 
-      ```c#
-      class SecuritySystem
+    public string UserName
+    {
+      get { return _userName; }
+      set { _userName = value; }
+    }
+
+    private int _password;
+
+    public int Password
+    {
+      get { return _password; }
+      set
       {
-        private string _userName;
-
-        public string UserName
-        {
-          get { return _userName; }
-          set { _userName = value; }
-        }
-
-        private int _password;
-
-        public int Password
-        {
-          get { return _password; }
-          set 
-          { 
-            _password = value;
-            LogIn();
-          }
-        }
-
-        protected void LogIn()
-        {
-          IPrincipal principal = Authenticate(UserName, Password);
-        }
-
-        private IPrincipal Authenticate(string UserName, int Password)
-        {
-          // Authenticate the user
-        }
+        _password = value;
+        LogIn();
       }
-      ```  
-    Instead, you should take the call LogIn() out of the setter for Password and make the method public, so the class can be used like this instead:
-    
-      ```c#
-      SecuritySystem system = new SecuritySystem();
-      system.Password = "knockknock";
-      system.UserName = "Encodo";
-      system.LogIn();
+    }
 
-      ```
-    In this case, Password can be set before the UserName without causing any problems.
-    
+    protected void LogIn()
+    {
+      IPrincipal principal = Authenticate(UserName, Password);
+    }
+
+    private IPrincipal Authenticate(string UserName, int Password)
+    {
+      // Authenticate the user
+    }
+  }
+  ```
+  Instead, you should take the call LogIn() out of the setter for Password and make the method public, so the class can be used like this instead:
+  ```csharp
+  var system = new SecuritySystem()
+  {
+    Password = "knockknock";
+    UserName = "Encodo";
+  }
+  system.LogIn();
+  ```
+  In this case, Password can be set before the UserName without causing any problems.
+
 ### Indexers
 
 * Provide an indexed property only if it really makes sense in the context of the class.
 * Indexes should be 0-based.
 
+### Properties
+
+* Prefer automatic properties as it saves a lot of typing and vastly improves readability.
+
 ## Methods
 
-* Methods should not have more than 200 lines of code 
+* Methods should not have more than 200 lines of code
 * Avoid returning `null` for methods that return collections or strings. Instead, return an empty collection (declare a static empty list) or an empty string (`String.Empty`).
 * Default implementations of empty methods should have both brackets on the same line:
 
-      ```c#
+      ```csharp
       protected virtual void DoInitialize(IMessageRecorder recorder) { }
       ```
 * Overrides of abstract methods or implementations of interface methods that are explicitly left empty should be marked with NOP:
 
-      ```c#
+      ```csharp
       protected override void DoBeforeSave()
       {
         // NOP
@@ -125,7 +149,7 @@ The difference between `const` and `readonly` is that `const` is compiled and `r
 
 * Prefer making `virtual` methods `protected` instead of `public`, but do not create an extra layer of method calls just to do so. If a method has logical pre-conditions or post-conditions (i.e. the pre-condition checks for more than just whether a parameter is null), consider making the method `protected` and wrapping it in a `public` method with the contracts in it (as below):
 
-      ```c#
+      ```csharp
       public void Update(IQuery query)
       {
         Debug.Assert(query != null);
@@ -149,21 +173,21 @@ The difference between `const` and `readonly` is that `const` is compiled and `r
 
 * Overloads are encouraged for methods that are in the same family and either serve the same purpose or have similar behavior. Do not use the types of parameters to distinguish these functions from one another. For example, the following is incorrect
 
-      ```c#
+      ```csharp
       void Update();
       void UpdateUsingQuery(IQuery query);
       void UpdateUsingSql(string sql);
       ```
     Instead, use an overload, letting the method signature describe the different functions. This reduces the perceived size of the API and makes it easier to understand.
 
-      ```c#
+      ```csharp
       void Update();
       void Update(IQuery query);
       void Update(string sql);
       ```
 * If an overloaded method must be marked `virtual`, make only one version `virtual` and define all of the others in terms of that one. Using the example above, this would yield:
 
-      ```c#
+      ```csharp
       public void Update()
       {
         Update(QueryTools.NullQuery); // Accesses a static global “null” query
@@ -179,7 +203,7 @@ The difference between `const` and `readonly` is that `const` is compiled and `r
         Update(new Query(sql));
       }
       ```
-* If two or more overloads share a parameter, that parameter name should be the same in all overloads. 
+* If two or more overloads share a parameter, that parameter name should be the same in all overloads.
 * Similarly, standardize parameter positions as much as possible between overloads and even just similar methods.
 
 ### Parameters
@@ -199,7 +223,7 @@ The difference between `const` and `readonly` is that `const` is compiled and `r
 * A constructor is considered to be valid if it doesn’t crash and the object can be used without crashing or causing unwarranted exceptions (null reference, etc.). Any properties required by the constructor to make it valid should be passed in as parameters.
 * All constructors should satisfy all class invariants; that is, you cannot require a user to set properties on an object in order to make it valid. A class may, however, require that some properties should be set before being able to use certain functions of a class. The example below shows such a class, which has an empty constructor and requires that certain properties are set before calling `Connect()` or `LogIn()`.
 
-      ```c#
+      ```csharp
       internal abstract class BackEnd
       {
         void BackEnd()
@@ -208,7 +232,7 @@ The difference between `const` and `readonly` is that `const` is compiled and `r
         internal abstract string ServerName { get; set; }
 
         internal abstract string UserName { get; set; }
-        
+
         internal abstract string Password { get; set; }
 
         internal abstract void Connect();
@@ -218,7 +242,7 @@ The difference between `const` and `readonly` is that `const` is compiled and `r
       ```
     As an aside, this is not a recommended design. The example above would work much better as follows:
 
-      ```c#
+      ```csharp
       abstract class BackEnd
       {
         void BackEnd()
@@ -232,7 +256,7 @@ The difference between `const` and `readonly` is that `const` is compiled and `r
 * Avoid doing more than setting properties in a constructor; provide a method on the class to perform any extra work after the object has been constructed.
 * Avoid calling virtual methods from a constructor because the most-derived version will be called, but before the constructor for that most-derived class has executed. The example below illustrates this problem, where the override `CaffeineAddict.GoToWork()` uses Coffee before it has been initialized.
 
-      ```c#
+      ```csharp
       public interface IBeverage
       {
         public bool Empty { get; }
@@ -279,7 +303,7 @@ The difference between `const` and `readonly` is that `const` is compiled and `r
       ```
 * To avoid duplicating code, but also to avoid exposing an unwanted default constructor, use a `protected` default constructor. For example:
 
-      ```c#
+      ```csharp
       protected Query()
       {
         _restrictions = new List<IRestriction>();
@@ -340,7 +364,7 @@ Please see section 2.1 – Abstractions for a discussion of when to use interfac
 * Use interfaces to “fake” multiple-inheritance.
 * Define interfaces if there will be more than one implementation of a hierarchy; without multiple-inheritance, this is the only way to remain flexible as to the implementation.
 * Define interfaces to clearly define what comprises an API; an interface will generally be smaller and more tightly-defined that the class that implements it. A class-based hierarchy runs the risk of mixing interface methods with implementation methods.
-* Consider using a C# attribute instead of a marker interface (an interface with no members). This makes for a cleaner inheritance representation and indicates the use of the marker better (e.g. NUnit tests as well as the serializing subsystem for .NET use attributes instead of marker interfaces). 
+* Consider using a C# attribute instead of a marker interface (an interface with no members). This makes for a cleaner inheritance representation and indicates the use of the marker better (e.g. NUnit tests as well as the serializing subsystem for .NET use attributes instead of marker interfaces).
 * Re-use interfaces as much as possible to avoid having many very similar interfaces that cause confusion as to which one should be used where.
 * Keep interfaces relatively small in order to ease implementation (5-10 members).
 * Where possible, provide an abstract class or default descendent that application code can use for implementing an interface. This provides both an implementation example and some protection from future changes to the interface.
@@ -385,7 +409,7 @@ Use the following rules when defining a `struct`.
 * The first value of a bit-set should always be `None` and equal to `0x00`.
 * In bit-sets, feel free to include commonly-used aliases or combinations of flags to improve readability and maintainability. One such common value is `All`, which includes all available flags and, if included, should be defined last. For example:
 
-      ```c#
+      ```csharp
       [Flags]
       public enum QuerySections
       {
@@ -394,7 +418,7 @@ Use the following rules when defining a `struct`.
         From = 0x02,
         Where = 0x04,
         OrderBy = 0x08,
-        NotOrderBy = All & ~OrderBy, 
+        NotOrderBy = All & ~OrderBy,
         All = Select | From | Where | OrderBy,
       }
       ```
@@ -406,7 +430,7 @@ Use the following rules when defining a `struct`.
 * Nested types should not replace namespaces for organization.
 * Use nested types if the inner type is logically within the other type (e.g. a `TableOfContents` class may have an `Options` inner class or a `Builder` inner class).
 * Use nested types if the inner type should have access to all members of the outer type.
-* Do not use public nested types unless you have a good reason for doing so (e.g. in the case of the `Options` class described above). 
+* Do not use public nested types unless you have a good reason for doing so (e.g. in the case of the `Options` class described above).
 * If a nested type needs a public constructor so that other types can create instances, then it probably shouldn’t be nested.
 * Delegate declarations should not be nested within the type because this reduces re-use of delegate declarations between types.
 * Use a nested type to group private or protected constants.
@@ -414,21 +438,21 @@ Use the following rules when defining a `struct`.
 ## Local Variables
 
 * Declare a local variable as close as possible to its first use (and within the most appropriate scope).
-* Local variables of the same type may be declared together, but only if they are not initialized. 
+* Local variables of the same type may be declared together, but only if they are not initialized.
 
-      ```c#
+      ```csharp
       IMetaEndpoint source, target;
       ```
 * If a local variable is initialized, put the initialization on the same line as the declaration. If the line gets too long, use multiple lines as described in section 4.5 – Line Breaking.
 * Local variables that need to be initialized cannot be declared on the same line unless they have the same initialization value.
 
-      ```c#
+      ```csharp
       int startOfWord = firstCharacter = 0;
       ```
 
 ## Event Handlers
 
-You should use the pattern and support classes for event-handling provided by the .NET library. 
+You should use the pattern and support classes for event-handling provided by the .NET library.
 
 * Do not expose delegates as `public` members; instead declare events using the `event` keyword.
 * Do not add a method to a delegate with `new EventHandler(…);` instead, use delegate inference.
@@ -442,7 +466,7 @@ You should use the pattern and support classes for event-handling provided by th
 
 * Be extremely careful when overloading operators; in general, you should only do so for `structs`. If you feel that an operator overload is especially clever, it probably isn’t; check with another developer before coding it.
 * In other words: do not provide a conversion operator if such conversion is not clearly expected by the end users.
-* Avoid overriding the == operator for reference types; override the `Equals()` method instead to avoid redefining reference equality. 
+* Avoid overriding the == operator for reference types; override the `Equals()` method instead to avoid redefining reference equality.
 * If you do override Equals(), you should also override `GetHashCode()`.
 * If you do override the == operator, consider overriding the other comparison operators (!=, <, <=, >, >=) as well.
 * You should return false from the `Equals()` function if the objects cannot be compared. However, if they are different types, you may throw an exception.
@@ -464,13 +488,13 @@ You should use the pattern and support classes for event-handling provided by th
 * Do not compare to `true` or `false`; instead, compare pure Boolean expressions.
 * Initialize Boolean values with simple expressions rather than using an if-statement; always use parentheses to delineate the assigned expression.
 
-      ```c#
+      ```csharp
       bool needsUpdate = (Count > 0 && Objects[0].Modified);
       ```
 * Always use brackets for flow-control blocks (`switch`, `if`, `while`, `for`, etc.)
 * Do not add useless `else` blocks. An `if` statement may stand alone and an `else if` statement may be the last condition. [\[2\]](#footnote_2)
 
-      ```c#
+      ```csharp
       if (a == b)
       {
         // Do something
@@ -481,10 +505,10 @@ You should use the pattern and support classes for event-handling provided by th
       }
 
       // No final "else" required
-      ``` 
+      ```
 * Do not force really complicated logic into an `if` statement; instead, use local variables to make the intent clearer. For example, imagine we have a lesson planner and want to find all unsaved lessons that are either unscheduled or are scheduled within a given time-frame. The following condition is too long and complicated to interpret quickly:
 
-      ```c#
+      ```csharp
       if (!lesson.Stored && (((StartTime <= lesson.StartTime) && (lesson.EndTime <= EndTime)) || ! lesson.Scheduled))
       {
         // Do something with the lesson
@@ -492,9 +516,9 @@ You should use the pattern and support classes for event-handling provided by th
       ```
     Even trying to apply the line-breaking rules results in an unreadable mess:
 
-      ```c#
-      if (!lesson.Stored && 
-        (((StartTime <= lesson.StartTime) && (lesson.EndTime <= EndTime)) || 
+      ```csharp
+      if (!lesson.Stored &&
+        (((StartTime <= lesson.StartTime) && (lesson.EndTime <= EndTime)) ||
         ! lesson.Scheduled))
       {
         // Do something with the lesson
@@ -502,7 +526,7 @@ You should use the pattern and support classes for event-handling provided by th
       ```
     Even with this valiant effort, the intent of the ||-operator is difficult to discern. With local variables, however, the logic is much clearer:
 
-      ```c#
+      ```csharp
       bool lessonInTimeSpan = ((StartTime <= lesson.StartTime) && (lesson.EndTime <= EndTime));
       if (!lesson.Stored && (lessonInTimeSpan || ! lesson.Scheduled))
       {
@@ -515,7 +539,7 @@ You should use the pattern and support classes for event-handling provided by th
 * Include a `default` statement that `asserts` or `throws` if all valid values are handled. This also applies for `enums` because the compiler does not realize that no default statement is needed.
 * Use the following form when values initialized by the switch-statements are to be used elsewhere in the method.
 
-      ```c#
+      ```csharp
       IDatabase result = null;
       switch (type)
       {
@@ -538,7 +562,7 @@ You should use the pattern and support classes for event-handling provided by th
       ```
 * In the case where the switch statement is the either the entire method or the final block in a method, use return statements directly from the case labels. In this case, the assertion is replaced with an exception or it won’t compile.
 
-      ```c#
+      ```csharp
       switch (type)
       {
         case DatabaseType.PostgreSql:
@@ -557,14 +581,14 @@ You should use the pattern and support classes for event-handling provided by th
 
 The ternary operator is a specialized form of an `if`/`then` statement with the following form:
 
-```c#
+```csharp
 return (_value != null) ? Value.ToString() : "NULL";
 ```
 If the condition (`_value != null` in this case) is true, the operator returns the value after the question mark; otherwise, it returns the value after the colon.
 
 The coalescing operator is a specialized form of the ternary operator, which has the following form:
 
-```c#
+```csharp
 return Target ?? Source;
 ```
 The operator returns the expression before the two question marks if it is not `null`; otherwise, it returns the expression after the two question marks.
@@ -580,44 +604,44 @@ The operator returns the expression before the two question marks if it is not `
 * Comments are indented at the same level as the code they document.
 * Place comments above the code being commented.
 
-### Styles 
+### Styles
 
 * Use the single-line comment style—`//`—to indicate a comment.
 * Use four slashes —`////`—to indicate a single line of code that has been temporarily commented.
 * Use the multi-line comment style—`/*` … `*/`—to indicate a commented-out block of code. In general, code should never be checked in with such blocks.
 * Consider using a compiler variable to define a non-compiling block of code; this practice avoids misusing a comment.
 
-      ```c#
+      ```csharp
       #if FALSE
             // commented code block
       #endif
       ```
 * Use the single-line comment style with `TODO` to indicate an issue that must be addressed. Before a check-in, these issues must either be addressed or documented in the issue tracker, adding the URL of the issue to the TODO as follows:
 
-      ```c#
+      ```csharp
       // TODO http://issue-tracker.encodo.com/?id=5647: [Title of the issue in the issue tracker]
       ```
 
 ### Content
 
 * Good variable and method names go a long way to making comments unnecessary.
-* Comments should be in US-English; prefer a short style that gets right to the point. 
+* Comments should be in US-English; prefer a short style that gets right to the point.
 * A comment need not be a full, grammatically-correct sentence. For example, the following comment is too long
 
-      ```c#
+      ```csharp
       // Using a granularity that is more than 50% of the size causes a crash!
 
-      int Granularity = Size / 5; 
+      int Granularity = Size / 5;
       ```
     Instead, you should stick to the essentials so that the warning is immediately clear:
 
-      ```c#
+      ```csharp
       int Granularity = Size / 5; // More than 50% causes a crash!
       ```
 * Comments should be spellchecked. [\[3\]](#footnote_3)
 * Comments should not explain the obvious. In the following example, the comment is superfluous.
 
-      ```c#
+      ```csharp
       public const int Granularity = Size / 5; // granularity is 20% of size
       ```
 * Use comments to explain algorithms or tricky bits that aren’t immediately obvious from a quick read.
@@ -626,7 +650,7 @@ The operator returns the expression before the two question marks if it is not `
 * Longer comments should always precede the line being commented. [\[4\]](#footnote_4)
 * Short comments may appear to the right of the code being commented, but only for lines ending in semicolon (i.e. marking the end of a statement). For example:
 
-      ```c#
+      ```csharp
       int Granularity = Size / 5; // More than 50% causes a crash!
       ```
 * Comments on the same line as code should _never_ be wrapped to multiple lines.
@@ -647,7 +671,7 @@ The operator returns the expression before the two question marks if it is not `
 
 Use the `ConditionalAttribute` instead of the `#ifdef`/`#endif` pair wherever possible (i.e. for methods or classes).
 
-```c#
+```csharp
 public class SomeClass
 {
   [Conditional("TRACE_ON")]
@@ -657,12 +681,12 @@ public class SomeClass
   }
 }
 ```
-      
+
 ### \#if/#else/#endif
 
 For other conditional compilation, use a static method in a static class instead of scattering conditional options throughout the code.
 
-```c#
+```csharp
 public static class EncodoCompilerOptions
 {
   public static bool DeveloperBuild()

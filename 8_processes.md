@@ -238,7 +238,7 @@ TODO
 
 ## Releases
 
-* Include range-checking if it doesn’t hamper performance.
+* Include range-checking if it doesn't hamper performance.
 * Include debugging information.
 * Include code optimization.
 
