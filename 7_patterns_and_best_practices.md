@@ -2,195 +2,295 @@
 
 ## Safe Programming
 
-* Use early-binding—which can be checked by the compiler—wherever possible; use late-binding only when necessary.
-* Avoid using `new` whenever possible; use `override` instead or restructure the code to avoid it.
-* Do not use `goto` unless you have gotten the approval of a senior member of your team.
-* Use `unsafe` code only for integrating external libraries.
-* If a reference may be `null`, test it before using it; otherwise, use `Debug.Assert` to verify that it is not `null`.
+* Use static typing wherever possible.
+* Make data immutable wherever possible.
+* Make references non-nullable wherever possible.
+* Make methods pure wherever possible.
+* Do not use the `new` keyword to force overrides; use `override` instead or restructure the code to avoid it.
+* Do not use `goto`.
+* Do not use `unsafe`. An exception is when writing external libraries or high-performance code.
+* Always test parameters, local variables and fields that can be `null`.
 * Do not re-use local variable names, even though the scoping rules are well-defined and allow it. This prevents surprising effects when the variable in the inner scope is removed and the code continues to compile because the variable in the outer scope is still valid.
 * Do not modify a variable with a prefix or suffix operator more than once in an expression. The following statement is not allowed:
-
-      ```c#
-      items[propIndex++] = ++propIndex;
-      ```
+  ```csharp
+  items[propIndex++] = ++propIndex;
+  ```
+* Use the `[NotNull]` attribute for parameters, fields and results. Enforce it with a runtime check.
 
 ## Side Effects
 
-A side effect is defined as a change in an object as a result of reading a property or calling a method that causes the result of the property or method to be different when called again.
+A side effect is a change in an object as a result of reading a property or calling a method that causes the result of the property or method to be different when called again.
 
-* Reading a property may not cause a side effect.
-* Writing a property may cause a side effect.
-* Methods have side effects by definition.
-* Avoid writing methods that return results and cause side effects. A method should either retrieve information or it should execute an operation, but not both.
+* Prefer pure methods.
+* Void methods have side effects by definition.
+* Writing a property must cause a side effect.
+* Reading a property should not cause a side effect. An exception is lazy-initialization to cache the result.
+* Avoid writing methods that return results _and_ cause side effects. An exception is lazy-initialization to cache the result.
 
-## Null Handling
+## Null-handling
 
-* If a value of `null` is allowed for a parameter of an interface type, consider making an empty implementation of that interface (named with the prefix `Null`).
+* Instead of allowing `null` for a parameter, avoid null-checks with a null implementation.
+  ```csharp
+  interface ILogger
+  {
+    bool Log(string message);
+  }
 
-      ```c#
-      interface IWeapon
-      {
-        bool Ready { get; }
-        void Aim();
-        void Fire();
-      }
-
-      class NullWeapon : IWeapon
-      {
-        bool Ready
-        {
-          get { return false; }
-        }
-
-        void Aim()
-        {
-          // NOP
-        }
-
-        void Fire()
-        {
-          // NOP
-        }
-      }
-      ```
-    Additionally, you should make an instance of this empty implementation available via a global static. This makes it easier to write code that uses the interface, as it can assert that the parameter is non-`null` and callers can simply pass in the empty implementation to satisfy the pre-condition.
+  class NullLogger : ILogger
+  {
+    void Log(string message)
+    {
+      // NOP
+    }
+  }
+  ```
 
 ## Casting
 
-* Use the `as`-operator when testing and using a type.  If you are just testing a type, use the is-operator.
+* Use a direct cast if you are sure of the type.
+  ```csharp
+  ((IWeapon)item).Fire();
+  ```
+* Use the `is`-operator when _testing_ but not _using_ the result of the cast.
+  ```csharp
+  return item is IWeapon;
+  ```
+* To use the result of the cast, use an `is`-expression in C# 7 and higher.
+  ```csharp
+  if (item == null) { throw new ArgumentNullException(nameof(item)); }
 
-      ```c#
-      Class1 other = obj as Class1;
-      if (other == null) { return false; }
-      ```
-* If you are using the type of an object to route to a type-specific method, then you can use the `is`-operator and the casting operator, as shown below.
+  if (item is IWeapon weapon)
+  {
+    return weapon.Fire();
+  }
 
-      ```c#
-      if (this is IMetaProperty)
-      {
-        HandleProperty((IMetaProperty)this);
-      }
-      else if (this is IMetaMethod)
-      {
-        HandleMethod((IMetaMethod)this);
-      }
-      else
-      {
-        HandleDefault(this);
-      }
-      ```
-* If you are sure of the type, use the casting operator to assert the type because it will throw an `InvalidCastException` if it fails; this avoids having to test for `null`.
+  return NullTurn.Default;
+   ```
+* Use a `switch` statement to match more than one or two patterns. Keep the argument precondition separate (even though it _could_ be the penultimate `case`).
+  ```csharp
+  if (item == null) { throw new ArgumentNullException(nameof(item)); }
 
-      ```c#
-      ((IMetaClass)obj).RunShow();
-      ```
+  switch (item)
+  {
+    case IWeapon weapon:
+      return weapon.Fire();
+    case IMagic magic:
+      return magic.Cast();
+    default:
+      return NullTurn.Default;
+  }
+  ```
+* In C# 6 and lower, use the `as`-operator.
+  ```csharp
+  if (item == null) { throw new ArgumentNullException(nameof(item)); }
 
-## Conversions
+  var weapon = item as IWeapon;
+  if (weapon != null)
+  {
+    return weapon.Fire();
+  }
 
-C# types can define `explicit` and `implicit` conversions to and from other types.
+  var magic = item as IMagic;
+  if (magic != null)
+  {
+    return magic.Cast();
+  }
 
-* Provide conversions only where they are logically justified; this goes double for implicit conversions. For example, the Quino library object `MetaString` enhances a string with multiple language representations; it can be freely converted to and from a string using the default language. However, you should not be able to implicitly or explicitly cast a control that displays a web page to a `String` (representing either the page content or the URL).
-* Generally, you should only provide implicit conversions between types that are in the same domain (like converting between string representations).
-* Do not provide implicit conversions if the conversion would cause data-loss.
-* Implicit conversions cannot throw exceptions; explicit conversions can. Use `InvalidCastException` for such errors.
+  return NullTurn.Default;
+  ```
 
-## Exit points (continue and return)
-* Multiple return statements are allowed if all exit points are relatively close to one another. For example, the following code has two, clearly visible exit points.
+## `return` statements
 
-      ```c#
-      if (a == 1) { return true; }
+* Prefer multiple return statements to local variables and nesting.
+  ```csharp
+  if (specialTaxRateApplies)
+  {
+    return CalculateSpecialTaxRate();
+  }
 
-      return false;
-      ```
-* Use `return` statements to avoid additional indentation for easy-to-catch conditions.
+  return CalculateRegularTaxRate();
+  ```
+* Compose smaller methods to avoid local variables for return values. For example, the following method uses a local variable rather than multiple returns.
+  ```csharp
+  bool result;
 
-      ```c#
-      if (String.IsNullOrEmpty(key)) { return null; }
-      ```
-* Do not spread return statements out throughout a longer method; instead, create a local variable named result and return it from the end of the method.
+  if (SomeConditionHolds())
+  {
+    PerformOperationsForSomeCondition();
 
-      ```c#
-      bool result = parameters.Count == 0;
+    result = false;
+  }
+  else
+  {
+    PerformOtherOperations();
 
-      if (someConditionHolds())
-      {
-        // Perform operations
-        result = false;
-      }
-      else
-      {
-        // Perform other operations
+    if (SomeOtherConditionHolds())
+    {
+      PerformOperationsForOtherCondition();
 
-        if (someOtherConditionHolds())
-        {
-          // Perform operations
-          result = false;
-        }
-        else
-        {
-          // Perform other operations
-          result = true;
-        }
-      }
+      result = false;
+    }
+    else
+    {
+      PerformFallbackOperations();
 
-      return result;
-      ```
+      result = true;
+    }
+  }
+
+  return result;
+  ```
+  This method can be rewritten to return the value instead.
+  ```csharp
+  if (SomeConditionHolds())
+  {
+    PerformOperationsForSomeCondition();
+
+    return false;
+  }
+
+  PerformOtherOperations();
+
+  if (SomeOtherConditionHolds())
+  {
+    PerformOperationsForOtherCondition();
+
+    return false;
+  }
+
+  PerformFallbackOperations();
+
+  return true;
+  ```
+
 * The only code that may follow the last `return` statement is the body of an exception handler.
+  ```csharp
+  try
+  {
+    // Perform operations
 
-      ```c#
-      try
-      {
-        // Perform operations
+    return true;
+  }
+  catch (Exception exception)
+  {
+    throw new DirectoryAuthenticatorException(exception);
+  }
+  ```
 
-        return true;
-      }
-      catch (Exception exception)
-      {
-        throw new DirectoryAuthenticatorException(exception);
-      }
-      ```
-* Avoid the use of `continue`; rewrite the program logic instead by reversing the condition. Instead of the following logic:
+### `continue` statements
 
-      ```c#
-      foreach (SearchResult search in searches)
-      {
-        if (!search.Path.Contains("CN=")) { continue; }
+* Do not use `continue`.
+* The following example is not allowed.
+  ```csharp
+  foreach (var search in searches)
+  {
+    if (!search.Path.Contains("CN=")) { continue; }
 
-        // Work with valid searches
-      }
-      ```
-    Use the following logic:
-
-      ```c#
-      foreach (SearchResult search in searches)
-      {
-        if (search.Path.Contains("CN="))
-        {
-          // Work with valid searches
-        }
-      }
-      ```
+    // Work with valid searches
+  }
+  ```
+  Instead, use a condition to filter elements.
+  ```csharp
+  foreach (var search in searches)
+  {
+    if (search.Path.Contains("CN="))
+    {
+      // Work with valid searches
+    }
+  }
+  ```
+  Even better, use `Where()` to filter elements.
+  ```csharp
+  foreach (var search in searches.Where(s => s.Path.Contains("CN=")))
+  {
+    // Work with valid searches
+  }
+  ```
 
 ## Object Lifetime
 
-* Always use the `using` statement with objects implementing `IDisposable` to limit their lifetimes.
-* Set objects that are no longer needed to `null` so that the garbage collector can collect them.
+* Use `try`/`finally` blocks (or related constructs, like `using` or `lock`) to clean up objects allocated in a method.
+* Local variables are automatically de-referenced when exiting the method, so there’s no need to set them to `null`.
+* Use a `using` statement to precisely delineate the lifetime of `IDisposable` objects.
+* If that's not possible, then create an `IDisposable` sub-object that controls the lifetime instead. See the example in the next section.
+
+## Cleanup
+
+### `IDisposable`
+
+* Implement `IDisposable` if your object uses disposable object or system resources.
+* Implement `Dispose()` so that it can be safely called multiple times (see example below).
+* Don't hide `Dispose()` in an explicit implementation. It confuses callers unnecessarily. If there is a more appropriate domain-specific name for `Dispose`, feel free to make a synonym.
+
+### `Finalize`
+
+* There are performance penalties for implementing `Finalize`. Implement it only if you actually have costly external resources.
+* Call the `GC.SuppressFinalize` method from `Dispose` to prevent `Finalize` from being executed if `Dispose()` has already been called.
+* `Finalize` should include only a call to `Dispose` and `base.Finalize()`.
+* `Finalize` should never be `public`
+
+### Example
+
+The following class expects the caller to use a non-standard pattern to avoid holding open a file handle.
+
+```csharp
+public class Weapon
+{
+  public Load(string file)
+  {
+    _file = File.OpenRead(file);
+  }
+
+  // Aim(), Fire(), etc.
+
+  public EjectShell()
+  {
+    _file.Dispose();
+  }
+
+  private File _file;
+}
+```
+Instead, make `Weapon` disposable. The following implementation follows the recommended pattern. R# can help you create this pattern.
+
+```csharp
+public class Weapon : IDisposable
+{
+  public Weapon(string file)
+  {
+    _file = File.OpenRead(file);
+  }
+
+  // Aim(), Fire(), etc.
+
+  public Dispose()
+  {
+    Dispose(true);
+    GC.SuppressFinalize(this);
+  }
+
+  protected virtual void Dispose(bool disposing)
+  {
+    if (disposing)
+    {
+      if (_file != null)
+      {
+        _file.Dispose();
+        _file = null;
+      }
+    }
+  }
+
+  private File _file;
+}
+```
+
+Using the standard pattern, R# and Code Analysis will detect when an `IDisposable` object is not disposed of properly.
+
+### Destructors
+
 * Avoid using destructors because they incur a performance penalty in the garbage collector.
 * Do not access other object references inside the destructor as those objects may already have been garbage-collected (there is no guaranteed order-of-destruction as in other languages).
-* Use `try`/`finally` blocks (or related constructs, like `using` or `lock`) to clean up objects allocated in a method. Local variables are automatically de-referenced when exiting the method, so there’s no need to set them to `null`.
-
-## Using Dispose and Finalize
-
-`Dispose` and `Finalize` provide control over how an object is garbage-collected. `Finalize` is called when an object is reclaimed by the garbage collector; overriding it prevents resources from leaking if a consumer of your class fails to call `Dispose`.
-
-* If you implement `Dispose`, use the `IDisposable` interface to allow explicit recovery of resources.
-* Make sure that `Dispose` can be called multiple times safely; all other methods should raise an `ObjectDisposedException` if `Dispose` has already been called.
-* If there is a more appropriate domain-specific name for Dispose, implement the IDisposable interface explicitly and provide a method with the new name that calls Dispose.
-* Call the `GC.SuppressFinalize` method to prevent `Finalize` from being executed if `Dispose()` has already been called.
-* If you implement `Dispose`, implement `Finalize` only if you actually have costly external resources.
-* `Finalize` should simply include a call to `Dispose`.
-* There are performance penalties for implementing `Finalize`, so proceed with caution.
-* `Finalize` should never be `public`; call only the `base.Finalize()` method directly.
 
 ## Using base and this
 
@@ -199,7 +299,7 @@ C# types can define `explicit` and `implicit` conversions to and from other type
 * Use `base` only from a constructor or to call a predecessor method.
 * You may only call the `base` method of the method being executed; do not call other `base` methods. In the following example, the call to `CheckProcess()` is not allowed, whereas the call to `RunProcess()` is.
 
-      ```c#
+      ```csharp
       public override void RunProcess()
       {
         base.CheckProcess();  // Not allowed
@@ -244,8 +344,21 @@ Some value types have both Pascal- and camel-case versions. Though `string` is s
 
 ## Using Partial Classes
 
-* Use partial classes to separate `private` or `protected` inner classes away from the “main” implementation.
-* Use partial classes to separate larger blocks of `private` or `protected` methods away from the `public` interface (this helps reduce file size).
+To control file size, partial classes can be useful to separate,
+
+* `private` or `protected` inner classes.
+* larger blocks of `private` or `protected` methods.
+
+## `readonly` vs. `const`
+
+The difference between `const` and `readonly` is that `const` is compiled and `readonly` is initialized at runtime.
+
+* Use `const` only when the value really is constant (e.g. `NumberDaysInWeek`); otherwise, use `readonly`.
+* Though `readonly` for references only prevents writing of the reference, not the attached value, it is still a helpful hint for both the compiler and the reader.
+
+## Resource strings
+
+For products in development, extraction to resources does not need to happen until the code has crystallized somewhat. Use ReSharper's extraction command to create resources automatically.
 
 ## Explicit Interface Implementation
 
@@ -259,7 +372,7 @@ Some value types have both Pascal- and camel-case versions. Though `string` is s
 * Be aware of which thread is triggering the event handler and which thread is handling the event. Events handled in the main (UI) thread must be synchronized (this is a limitation of Windows UI programming).
 * To avoid multi-threading problems, get a reference to the handler in a local variable before checking it and calling it. For example:
 
-      ```c#
+      ```csharp
       protected virtual void RaiseMessageDispatched()
       {
         EventHandler handler = MessageDispatched;
@@ -268,7 +381,7 @@ Some value types have both Pascal- and camel-case versions. Though `string` is s
       ```
     The following code is an example of a simple event handler and receiver with all of the Encodo style conventions applied.
 
-      ```c#
+      ```csharp
       public class Safe
       {
         public event EventHandler Locked;
@@ -311,7 +424,7 @@ Some value types have both Pascal- and camel-case versions. Though `string` is s
 
 When using Linq expressions, be careful not to sacrifice legibility or performance simply in order to use Linq instead of more common constructs. For example, the following loop sets a property for those elements in a list where a condition holds.
 
-```c#
+```csharp
 foreach (var pair in Data)
 {
   if (pair.Value.Property is IMetaRelation)
@@ -323,7 +436,7 @@ foreach (var pair in Data)
 
 This seems like a perfect place to use Linq; assuming an extension method `ForEach(this IEnumerable<T>)`, we can write the loop above using the following Linq expression:
 
-```c#
+```csharp
 Data.Where(pair => pair.Value.Property is IMetaRelation).ForEach(pair => pair.Value.Value = null);
 ```
 
@@ -339,7 +452,7 @@ A few concrete examples of other issues that arise due to lazy evaluation are il
 
 You can accidentally change the value of a captured variable before the sequence is evaluated. Since _ReSharper_ will complain about this behavior even when it does not cause unwanted side-effects, it is important to understand which cases are actually problematic.
 
-```c#
+```csharp
 var data = new[] { "foo", "bar", "bla" };
 var otherData = new[] { "bla", "blu" };
 var overlapData = new List<string>();
@@ -359,13 +472,13 @@ Assert.AreEqual(1, overlapData.Count);
 The reference to the variable `d` will be flagged by _ReSharper_ and marked as an “access to a modified closure”. This is a reminder that a variable referenced—or “captured”—by the lambda expression—closure—will have the last value assigned to it rather than the value that was assigned to it when the lambda was created. In the example above, the lambda is created with the first value in the sequence, but since we only use the lambda once, and then always before the variable has been changed, we don’t have to worry about side-effects. _ReSharper_ can only detect that a variable referenced in a closure is being changed within the scope that it checks and letting you know so you can verify that there are no unwanted side-effects.
 Even though there isn’t a problem, you can rewrite the `foreach`-statement above as the following code, eliminating the “Access to modified closure” warning.
 
-```c#
+```csharp
 var overlapData = data.Where(d => otherData.Where(od => od == d).Any()).ToList();
 ```
 
 The example above was tame in that the program ran as expected despite capturing a variable that was later changed. The following code, however, will not run as expected:
 
-```c#
+```csharp
 var data = new[] { "foo", "bar", "bla" };
 var otherData = new[] { "bla", "blu" };
 var overlapData = new List<string>();
@@ -384,7 +497,7 @@ Assert.AreEqual(0, results.Count());
 
 Here we have a problem because the closure is evaluated _after_ a local variable that it captured has been modified, resulting in unexpected behavior. Whereas it’s possible that this is exactly what you intended, it’s not a recommended coding style. Instead, you should move the calculation that uses the lambda after any code that changes variables that it capture:
 
-```c#
+```csharp
 var threshold = 2;
 var overlapData = data.Where(d => otherData.Where(od => od == d).Any());
 if (overlapData.Any())
@@ -400,7 +513,7 @@ This is probably the easiest way to get rid of the warning and make the code cle
 
 You can run into a problem changing a list that is being enumerated
 
-```c#
+```csharp
 var emptyElements = data.Where(d => d.IsEmpty);
 foreach (var d in emptyElements)
 {
@@ -414,7 +527,7 @@ The `emptyElements` sequence above is evaluated in the `foreach`-statement and p
 
 You can get unexpected behavior that result in neither a run-time nor a compile-time error. Suppose we’ve fixed the error in the code above by forcing evaluation of the `emptyElements` sequence by putting its elements in a list. However, we also want to know how many elements were empty, so we return the `Count()`.
 
-```c#
+```csharp
 var emptyElements = data.Where(d => d.IsEmpty);
 foreach (var d in emptyElements.ToList())
 {
@@ -430,7 +543,7 @@ A more critical look at the code above would discover that the `emptyElements` i
 
 Before trying to solve the problem, you have to consider how many items will commonly be in data. The next question will commonly be whether memory or speed is more important, but the code above includes a required call to `ToList()`, which renders the point moot because the algorithm already requires all code to be copied to another list. The least-wasteful solution then is:
 
-```c#
+```csharp
 var emptyElements = data.Where(d => d.IsEmpty).ToList();
 foreach (var d in emptyElements)
 {
@@ -442,7 +555,7 @@ return emptyElements.Count;
 
 This restricts the amount of copied references to the number of empty elements in the list. If that’s not the common case, then a better algorithm would be to find all non-empty elements instead:
 
-```c#
+```csharp
 var nonEmptyElements = data.Where(d => !d.IsEmpty).ToList();
 var dataCount = data.Count();
 data.Clear();
@@ -456,9 +569,84 @@ return dataCount – nonEmptyElements;
 
 The point is, you can’t be lazy with Linq; get it?
 
-## Using Extension Methods
+## Designing Types
 
-_This section applies to .NET 3.5 and newer._
+Instead of writing comments or documentation warning about improper usage, design types so that the caller cannot use them incorrectly.
+
+The example below shows such a class, which requires that certain properties are set before calling `Connect()` or `LogIn()`.
+
+```csharp
+public interface IBackEnd
+{
+  string ServerName { get; set; }
+  string UserName { get; set; }
+  string Password { get; set; }
+  void Connect();
+  void LogIn();
+  void RunTask([NotNull] ITask task);
+}
+
+public Main()
+{
+  var backEnd = CreateBackEnd();
+  var tasks = GetTasks();
+
+  backEnd.ServerName = GetServerName();
+  backEnd.UserName = GetUserName();
+  backEnd.Password = GetPassword();
+  backEnd.Connect();
+  backEnd.LogIn();
+
+  foreach (var task in tasks)
+  {
+    backEnd.RunTask(task);
+  }
+}
+```
+
+This style will do the job and it's not uncommon, but it requires documentation and discipline on the part of the caller. There is no other logically valid way to set the properties and call the methods, so the block in `Main()` _should_ always look the same.
+
+Instead of the design above, use types to restrict a caller. Instead of a single `IBackEnd` type with multiple methods, move the configuration parameters to an `IConnectionSettings` object and define _three_ interfaces, each of which has a single responsibility:
+
+```csharp
+interface IDisconnectedBackEnd
+{
+  [NotNull]
+  IConnectedBackEnd Connect([NotNull] IConnectionSettings settings);
+}
+
+interface IConnectedBackEnd
+{
+  [NotNull]
+  ILoggedInBackEnd LogIn([NotNull] IUser user);
+}
+
+interface ILoggedInBackEnd
+{
+  void RunTask([NotNull] ITask task);
+}
+
+public Main()
+{
+  var settings = GetConnectionSettings();
+  var user = GetUser();
+  var tasks = GetTasks();
+
+  var backEnd =
+    CreateDisconnectedBackEnd()
+    .Connect(settings)
+    .LogIn(user);
+
+  foreach (var task in tasks)
+  {
+    backEnd.RunTask(task);
+  }
+}
+```
+
+In this case, the code in `Main()` will still always look the same, _but it can now no longer take any other shape_. The caller _cannot_ call `LogIn()` without having called `Connect()` first. With these types, a method can require a `IConnectedBackEnd` or `ILoggedInBackEnd` rather than a generic `IBackEnd` in an unknown state.
+
+## Using Extension Methods
 
 Extension methods are a way of adding available methods to a type without actually defining those methods on the type itself. Though these methods may contribute to API bloat, they are encouraged as long as they are used often (more than once, please) and provide a clear service—either making calling code much cleaner or handling a tricky task, or both.
 
@@ -468,6 +656,8 @@ Extension methods are a way of adding available methods to a type without actual
 * Do not use extension methods when an interface implementation could possibly provide an optimized version of the functionality were the method declared on the interface instead. That is, do not restrict an implementation’s efficiency because an extension instead of interface method was used.
 * Do not mix extension methods with other static methods. If a class contains extension methods, it should contain only extension methods and private support methods.
 * Each extended type should have its own extension methods class; do not mix extension methods for different types in one class.
+* Do not add too much logic to extension methods. Instead, declare components and inject them where needed.
+* _Do not_ pass an IOC to extension methods.
 
 ##	Using Optional Parameters
 
@@ -501,32 +691,32 @@ usage of `var`:
 
 * The classic case involves direct instantiation using the new-operator.
 
-      ```c#
+      ```csharp
       IList<Airplane> planes = new List<Airplane>();
       ```
     This type of declaration needlessly clutters the code and should be replaced:
 
-      ```c#
+      ```csharp
       var planes = new List<Airplane>();
       ```
 * The rule does not state that the full type must be stated—simply that the code be understandable. The following example can use `var` because it also uses appropriate variable- and method-naming conventions.
 
-      ```c#
+      ```csharp
       IDataList<Airplane> planes = connection.GetList<Airplane>();
       ```
     Naming the variable `planes` in the plural and using the method name `GetList` is sufficient to get the point across that the variable is a list of `Airplane` objects.
 
-      ```c#
+      ```csharp
       var planes = connection.GetList<Airplane>();
       ```
 * In the following example, the right-hand side offers no hint as to the type (other than that implied by the plural name GetAirplanes).
 
-      ```c#
+      ```csharp
       IDataList<Airplane> planes = hanger.GetAirplanes(connection);
       ```
     However, you can use var here because the name of the variable planes is semantically relevant.
 
-      ```c#
+      ```csharp
       var planes = hangar.GetAirplanes(connection);
       ```
 
@@ -544,7 +734,7 @@ One advantage in using interfaces over abstract classes is that interfaces can r
 
 The following example illustrates this principle for properties:
 
-```c#
+```csharp
 interface IMaker
 {
   bool Enabled { get; }
@@ -558,7 +748,7 @@ class Maker : IMaker
 
 The principle extends to making read-only sequences as well, using `IEnumerable<T>` in the interface and exposing `IList<T>` in the backing class, using explicit interface implementation, as shown below:
 
-```c#
+```csharp
 interface IProcessedCommands
 {
   IEnumerable<ISwitchCommand> SwitchCommands { get; }
@@ -584,10 +774,10 @@ In this way, the client of the interface cannot call `Add()` or `Remove()` on th
 * Exceptions are the primary means of signaling errors (see 7.24.3 – Exceptions).
 * Consider carefully whether an error is truly exceptional or whether the component should handle the error and set a property to indicate a status instead. This is especially true of code that performs an asynchronous task (e.g. a communications component), where the initiation point is separated from the completion point.
 * Do not design methods that change error-handling strategy depending on a parameter; use the Try*-pattern instead.
-* If a method is expected to encounter one or more errors, don’t use exceptions; use an `IMessageRecorder` instead.
+* If a method is expected to encounter one or more errors, don’t use exceptions; use a logger (e.g. `ILogger`) instead.
 * Reserve the result for semantically relevant data. If there is no semantically relevant result, use `void`. The following function is incorrect because -1 is not a semantically relevant result for the method name.
 
-      ```c#
+      ```csharp
       public int GetNumberOfPeopleInFile(string fileName)
       {
         if (CanLoadFile(fileName))
@@ -600,7 +790,7 @@ In this way, the client of the interface cannot call `Add()` or `Remove()` on th
       ```
     Instead, you should use something like the following code, throwing exceptions for situations that the API is not meant to handle.
 
-      ```c#
+      ```csharp
       public int GetNumberOfPeopleInFile(string fileName)
       {
         File people = LoadFile(fileName); // throws exception
@@ -626,7 +816,7 @@ The Try\* pattern is used by the .NET framework. Generally, Try\*-methods accept
 
 * If you provide a method using the Try* pattern (), you should also provide a non-try-based, exception-throwing variant as well.
 
-      ```c#
+      ```csharp
       public IExpression Parse(string text, IMessageRecorder recorder)
       {
         // parse the string to an expression
@@ -651,13 +841,28 @@ In the example above, you’ll note the parse process also accepts an `IMessageR
 
 ## Exceptions
 
+### Categories
+
+Exceptions come in two categories: exceptions and bugs. Bugs should result in aborting the application because it is not possible to reason about software that has a bug.
+
+* Do not every catch and suppress bugs.
+* You may catch all exceptions if you re-throw bugs.
+
+The following exceptions are bugs:
+
+* `ArgumentException` and descendants
+* `NullReferenceException`
+* `ClassCastException`
+* `OutOfMemoryException`
+* Etc.
+
 ###	Defining Exceptions
 
 * Do not simply create an exception type for every different error.
 * Create a new type only if you want to expose additional properties on the exception; otherwise, use a standard type.
 * Use a custom exception to hold any information that more completely describes the error (e.g. error codes or structures).
 
-      ```c#
+      ```csharp
       throw new DatabaseException(errorInfo);
       ```
 * Custom exceptions should always inherit from `Exception` (do not use `ApplicationException` as its use has been deprecated).
@@ -665,7 +870,7 @@ In the example above, you’ll note the parse process also accepts an `IMessageR
 * Avoid constructing complex exception hierarchies; use your own exception base-classes if you actually will have code that needs to catch all exceptions of a particular sub-class.
 * An exception should provide the three standard constructors (as well as the serialization constructor if you are supporting serialization) and should use the given parameter names:
 
-      ```c#
+      ```csharp
       public class ConfigurationException : Exception
       {
         public ConfigurationException()
@@ -700,11 +905,12 @@ In the example above, you’ll note the parse process also accepts an `IMessageR
 
 ###	Catching Exceptions
 
+* Do not catch catastrophic exceptions.
 * Be as specific as possible as to which exceptions are caught (even if this means you have to repeat some lines of handling code). This allows unexpected exceptions (e.g. `NullReferenceException`) to show up during testing instead of being swallowed and logged with other, expected errors.
 * Catch and re-throw an exception in order to reset the internal state of an object to satisfy a post-condition.
 * In the case of a misbehaving third-party component, catch specific exceptions as much as possible, but also catch all exceptions to prevent third-party problems from crashing the application.
 
-      ```c#
+      ```csharp
       try
       {
         // Use third-party code
@@ -816,7 +1022,7 @@ Whether to use loose or tight coupling for components depends on several factors
 If the component on the higher level needs to be coupled to a component on a lower level, then it’s possible to have them be more tightly coupled by using an interface. The advantage of using an interface over a set or one or more callbacks is that changes to the semantics of how the coupling should occur can be enforced. The example below should make this much clearer.
 Imagine a class that provides a single event to indicate that it has received data from somewhere.
 
-```c#
+```csharp
 public class DataTransmitter
 {
   public event EventHandler<DataBundleEventArgs> DataReceived;
@@ -825,7 +1031,7 @@ public class DataTransmitter
 
 This is the class way of loosely coupling components; any component that is interested in receiving data can simply attach to this event, like this:
 
-```c#
+```csharp
 public class DataListener
 {
   public DataListener(DataTransmitter transmitter)
@@ -842,7 +1048,7 @@ public class DataListener
 
 Another class could combine these two classes in the following, classic way:
 
-```c#
+```csharp
 var transmitter = new DataTransmitter();
 var listener = new DataListener(transmitter);
 ```
@@ -850,7 +1056,7 @@ var listener = new DataListener(transmitter);
 The transmitter and listener can be defined in completely different assemblies and need no dependency on any common code (other than the .NET runtime) in order to compile and run. If this is an absolute _must_ for your component, then this is the pattern to use for all events. Just be aware that the loose coupling may introduce _semantic_ errors—errors in usage that the compiler will not notice.
 For example, suppose the transmitter is extended to include a new event, NoDataAvailableReceived.
 
-```c#
+```csharp
 public class DataTransmitter
 {
   public event EventHandler<DataBundleEventArgs> DataReceived;
@@ -864,7 +1070,7 @@ One way to fix this problem (once detected) is to hook the new event in the `Dat
 
 Imagine now that the transmitter becomes more sophisticated and defines more events, as shown below.
 
-```c#
+```csharp
 public class DataTransmitter
 {
   public event EventHandler<DataBundleEventArgs> DataReceived;
@@ -879,7 +1085,7 @@ Clearly, a listener that attaches and responds appropriately to _all_ of these e
 
 If we can change the interface—and if the components can include references to common code—then we can introduce tight coupling by defining an interface with methods instead of individual events.
 
-```c#
+```csharp
 public interface IDataListener
 {
   void DataReceived(IDataBundle bundle);

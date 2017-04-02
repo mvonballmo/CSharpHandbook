@@ -24,16 +24,19 @@
 
 ## Declaration Order
 
-* Constructors (in descending order of complexity)
+* Constructors, in descending order of complexity
 * public constants
-* properties
+* public properties
 * public methods
+* protected constants
+* protected properties
 * protected methods
+* private constants
+* private properties
 * private methods
-* protected fields
 * private fields
 
-## Visibility
+## Modifiers
 
 * The visibility modifier is required for all types, methods and fields; this makes the intention explicit and consistent.
 * The visibility keyword is always the first modifier.
@@ -54,324 +57,337 @@
   public const int DefaultGranularity = DefaultCacheSize / 5;
   ```
 
-### readonly vs. const
+## Resource Strings
 
-The difference between `const` and `readonly` is that `const` is compiled and `readonly` is initialized at runtime.
+* Use resources for all localizable strings.
+* You should not use resources for strings that will not be localized (e.g. log messages)
+* Resource identifiers follow the same rules as all other identifiers.
 
-* Use `const` only when the value really is constant (e.g. `NumberDaysInWeek`); otherwise, use `readonly`.
-* Though `readonly` for references only prevents writing of the reference, not the attached value, it is still a helpful hint for both the compiler and the reader.
-
-### Strings and Resources
-
-* Do not hardcode strings that will be presented to the user; use resources instead. For products in development, this text extraction can be performed after the code has crystallized somewhat.
-* Resource identifiers should be alphanumeric, but may also include a dot (“.”) to logically nest resources.
-* Do not use constants for strings; use resource tables instead (this aids translation, if necessary).
-* Configuration data should be moved into application settings as soon as possible.
 ## Properties
-* In the event that setting a property caused an exception, then the existing value should be restored.
-* Make properties immutable wherever possible.
-* Use read-only properties if there is no logical reason for calling code to be able to change the value.
-* Properties should be commutative; that is, it should not matter in which order you set them. Avoid enforcing an ordering by using a method to execute code that you would want to execute from the property setter. The following example is incorrect because setting the password before setting the name causes a login failure.
-  ```csharp
-  class SecuritySystem
+
+* Prefer immutable properties.
+* Prefer automatic properties.
+* Prefer getter-only auto-properties.
+* Prefer auto-property initializers.
+
+### Declaration
+
+For example, the first version below is not only verbose, but B is mutable (within the class):
+
+```csharp
+// Do not use this style
+public class A
+{
+  A()
   {
-    private string _userName;
+    B = 1;
+  }
 
-    public string UserName
+  int B { get; private set; }
+}
+```
+
+This is also quite verbose, but B is now read-only:
+
+```csharp
+// Do not use this style
+public class A
+{
+  int B
+  {
+    get { return _b; }
+  }
+
+  private readonly int _b = 1;
+}
+```
+
+Finally, this is the recommended syntax (C#6 and higher):
+
+```csharp
+public class A
+{
+  int B { get; } = 1;
+}
+```
+
+### Commutativity
+
+Properties should be commutative; that is, it should not matter in which order you set them. Avoid enforcing an ordering by using a method to execute code that you would want to execute from the property setter. The following example is incorrect because setting the password before setting the name causes a login failure.
+
+```csharp
+class SecuritySystem
+{
+  private string _userName;
+
+  public string UserName
+  {
+    get { return _userName; }
+    set { _userName = value; }
+  }
+
+  private int _password;
+
+  public int Password
+  {
+    get { return _password; }
+    set
     {
-      get { return _userName; }
-      set { _userName = value; }
-    }
-
-    private int _password;
-
-    public int Password
-    {
-      get { return _password; }
-      set
-      {
-        _password = value;
-        LogIn();
-      }
-    }
-
-    protected void LogIn()
-    {
-      IPrincipal principal = Authenticate(UserName, Password);
-    }
-
-    private IPrincipal Authenticate(string UserName, int Password)
-    {
-      // Authenticate the user
+      _password = value;
+      LogIn();
     }
   }
-  ```
-  Instead, you should take the call LogIn() out of the setter for Password and make the method public, so the class can be used like this instead:
-  ```csharp
-  var system = new SecuritySystem()
+
+  protected void LogIn()
   {
-    Password = "knockknock";
-    UserName = "Encodo";
+    IPrincipal principal = Authenticate(UserName, Password);
   }
-  system.LogIn();
-  ```
-  In this case, Password can be set before the UserName without causing any problems.
 
-### Indexers
+  private IPrincipal Authenticate(string UserName, int Password)
+  {
+    // Authenticate the user
+  }
+}
+```
 
-* Provide an indexed property only if it really makes sense in the context of the class.
+Instead, you should take the call LogIn() out of the setter for Password and make the method public, so the class can be used like this instead:
+
+```csharp
+var system = new SecuritySystem()
+{
+  Password = "knockknock";
+  UserName = "Encodo";
+}
+system.LogIn();
+```
+
+In this case, Password can be set before the UserName without causing any problems.
+
+## Indexers
+
+* Avoid indexers. They are difficult to navigate, even with good tools. Use well-named methods instead (e.g. `Get*()` and `Set*()`).
+* Provide an indexed property only if it really makes sense.
 * Indexes should be 0-based.
-
-### Properties
-
-* Prefer automatic properties as it saves a lot of typing and vastly improves readability.
 
 ## Methods
 
-* Methods should not have more than 200 lines of code
+* Methods should not exceed a cyclomatic complexity of 20.
+* Prefer private methods.
+* Use the same names and positions for parameters shared by similar methods.
 * Avoid returning `null` for methods that return collections or strings. Instead, return an empty collection (declare a static empty list) or an empty string (`String.Empty`).
-* Default implementations of empty methods should have both brackets on the same line:
-
-      ```csharp
-      protected virtual void DoInitialize(IMessageRecorder recorder) { }
-      ```
-* Overrides of abstract methods or implementations of interface methods that are explicitly left empty should be marked with NOP:
-
-      ```csharp
-      protected override void DoBeforeSave()
-      {
-        // NOP
-      }
-      ```
-* Consider using partial methods to reduce the number of explicitly declared virtual methods if you are using C# 3.0.
+* Methods that are explicitly left empty should be marked with NOP:
+  ```csharp
+  protected override void DoBeforeSave()
+  {
+    // NOP
+  }
+  ```
 
 ### Virtual
 
-* Prefer making `virtual` methods `protected` instead of `public`, but do not create an extra layer of method calls just to do so. If a method has logical pre-conditions or post-conditions (i.e. the pre-condition checks for more than just whether a parameter is null), consider making the method `protected` and wrapping it in a `public` method with the contracts in it (as below):
+* `virtual` is a code smell; consider _composition_ as an alternative.
+* Avoid `public virtual` methods, but do not create an extra layer of method call either.
+* If a method has logical pre-conditions or post-conditions, consider wrapping a `protected virtual` method in a `public` method, as shown below:
+  ```csharp
+  public void Update(IQuery query)
+  {
+    if (query == null) { throw new ArgumentNullException(nameof(query)); }
+    if (!query.Valid) { throw new ArgumentException("Query is not valid.",  nameof(query)); }
+    if (!query.Updatable) { throw new ArgumentException("Query is not updatable.",  nameof(query)); }
 
-      ```csharp
-      public void Update(IQuery query)
-      {
-        Debug.Assert(query != null);
-        Debug.Assert(query.Valid);
-        Debug.Assert(Updatable);
+    DoUpdate(query);
 
-        DoUpdate(query);
+    if (!query.UpToDate) { throw new ArgumentException("Query should have been updated.",  nameof(query)); }
+  }
 
-        Debug.Assert(UpToDate);
-      }
-
-      protected virtual void DoUpdate(IQuery query)
-      {
-        // Perform update
-      }
-      ```
-    Always use “Do” as a prefix for such protected, helper methods.
-* If a `protected` method is not `virtual`, make it `private` unless it will be used from a descendent.
+  protected virtual void DoUpdate(IQuery query)
+  {
+    // Perform update
+  }
+  ```
+  Use a `Do` or `Internal` prefix for these methods.
+* Wrap multiple parameters in an "arguments" class to avoid changing the signature when more data is needed in future versions.
 
 ### Overloads
 
-* Overloads are encouraged for methods that are in the same family and either serve the same purpose or have similar behavior. Do not use the types of parameters to distinguish these functions from one another. For example, the following is incorrect
+* Use overloads for methods that have similar behavior. Do not include parameter names in the method name. For example, the following is incorrect
+  ```csharp
+  void Update();
+  void UpdateUsingQuery(IQuery query);
+  void UpdateUsingSql(string sql);
+  ```
+  The overloaded version below reduces the perceived size of the API and makes it easier to understand.
+  ```csharp
+  void Update();
+  void Update(IQuery query);
+  void Update(string sql);
+  ```
+* Avoid putting a lot of logic in overloaded methods.
+* Try to make overloads "funnel" to a single overload or other method.
+* Make at most one overload `virtual`. For example:
+  ```csharp
+  public void Update()
+  {
+    Update(QueryTools.NullQuery);
+  }
 
-      ```csharp
-      void Update();
-      void UpdateUsingQuery(IQuery query);
-      void UpdateUsingSql(string sql);
-      ```
-    Instead, use an overload, letting the method signature describe the different functions. This reduces the perceived size of the API and makes it easier to understand.
+  public void UpdateUsingSql(string sql)
+  {
+    Update(new Query(sql));
+  }
 
-      ```csharp
-      void Update();
-      void Update(IQuery query);
-      void Update(string sql);
-      ```
-* If an overloaded method must be marked `virtual`, make only one version `virtual` and define all of the others in terms of that one. Using the example above, this would yield:
+  public virtual void Update(IQuery query)
+  {
+    // Perform update
+  }
+  ```
 
-      ```csharp
-      public void Update()
-      {
-        Update(QueryTools.NullQuery); // Accesses a static global “null” query
-      }
+### The "Try" pattern
 
-      public virtual void Update(IQuery query)
-      {
-        // Perform update
-      }
-
-      public void UpdateUsingSql(string sql)
-      {
-        Update(new Query(sql));
-      }
-      ```
-* If two or more overloads share a parameter, that parameter name should be the same in all overloads.
-* Similarly, standardize parameter positions as much as possible between overloads and even just similar methods.
+* If a method follows the Try* pattern—which returns a bool indicating success, and accepts a single out parameter—the parameter should be named “result”. The method should be prefixed with “Try”.
+* Consider using a tuple result type instead of using an `out` parameter.
 
 ### Parameters
 
-* Methods should not have more than 5 parameters (consider using a `struct` instead).
-* Methods should not have more than 2 `out` or `ref` parameters (consider using a `struct` instead).
-* `ref`, then `out` parameters should come last in the list of parameters.
-* The implementation of an interface method should use the same parameter name as that given in the interface method declaration.
-* Do not declare reserved parameters (use overloads in future library versions instead).
-* If a method follows the Try* pattern—which returns a bool indicating success, and accepts a single out parameter—the parameter should be named “result”. The method should be prefixed with “Try”.
-* Do not assign new values to parameters; use a local variable instead. Assignments to parameters are easy-to-miss in larger methods. If you use a local variable instead, a reader knows right away to look for initializations of that variable rather than to look for changes to the parameter value.
+* Use at most 5 parameters per method. Otherwise, use a `class`, `struct` or `tuple`.
+* Use at most 1 `out` or `ref` parameter. Otherwise, return a `class`, `struct` or `tuple`.
+* A `ref` and `out` parameter belongs at the end of the list of non-optional parameters.
+* Use the same name for parameters in interface implementations or overrides.
+* Avoid re-assigning the value of a parameter. Instead, use a local variable.
+* A valid re-assignment is for nullable parameters, of the form shown below:
+  ```csharp
+  void Apply([NotNull] IMigrationPlan plan, [CanBeNull] ILogger logger = null)
+  {
+    if (plan != null) { throw new ArgumentNullException(nameof(plan)); }
+
+    logger = logger ?? NullLogger.Default;
+
+    // ...
+  }
+  ```
 
 ### Constructors
 
-* Base constructors should be on a separate line, indented one level.
-* Consider including the default `base()` call in constructors to make it clear which constructor is called (and to provide a way of quickly jumping to the implementation in the IDE).
-* A constructor is considered to be valid if it doesn’t crash and the object can be used without crashing or causing unwarranted exceptions (null reference, etc.). Any properties required by the constructor to make it valid should be passed in as parameters.
-* All constructors should satisfy all class invariants; that is, you cannot require a user to set properties on an object in order to make it valid. A class may, however, require that some properties should be set before being able to use certain functions of a class. The example below shows such a class, which has an empty constructor and requires that certain properties are set before calling `Connect()` or `LogIn()`.
+* Do not include a call to the default `base()`
+* Avoid doing more than setting properties in a constructor; provide a well-named method on the class to perform any extra work after the object has been constructed.
+* Avoid calling virtual methods from a constructor. The initialization order for constructors can lead to crashes. The example below illustrates this problem, where the override `CaffeineAddict.GoToWork()` uses Coffee before it has been initialized.
+  ```csharp
+  public abstract class Employee
+  {
+    public Employee()
+    {
+      Notify();
+    }
 
-      ```csharp
-      internal abstract class BackEnd
-      {
-        void BackEnd()
-        { }
+    protected abstract void Notify();
+  }
 
-        internal abstract string ServerName { get; set; }
+  public class CaffeineAddict : Employee
+  {
+    public CaffeineAddict([NotNull] Employee boss)
+      : base()
+    {
+      if (boss == null) { throw new ArgumentNullException(nameof(beverage)); }
 
-        internal abstract string UserName { get; set; }
+      Boss = boss;
+    }
 
-        internal abstract string Password { get; set; }
+    [NotNull]
+    public Employee Boss { get; }
 
-        internal abstract void Connect();
+    protected override void Notify()
+    {
+      // Crashes when called from the constructor
+      Boss.Notify();
+    }
+  }
+  ```
+* Constructors should "funnel" so that initialization code is written only once. For example:
+  ```csharp
+  protected Query()
+  {
+    _restrictions = new List<IRestriction>();
+    _sorts = new List<ISort>();
+  }
 
-        internal abstract void LogIn();
-      }
-      ```
-    As an aside, this is not a recommended design. The example above would work much better as follows:
+  public Query([NotNull] IMetaClass model)
+    : this()
+  {
+    if (model == null) { throw new ArgumentNullException(nameof(model)); }
 
-      ```csharp
-      abstract class BackEnd
-      {
-        void BackEnd()
-        { }
+    Model = model;
+  }
 
-        abstract void Connect(IConnectionSettings settings);
+  public Query([NotNull] IDataRelation relation)
+    : this()
+  {
+    if (relation == null) { throw new ArgumentNullException(nameof(relation)); }
 
-        abstract void LogIn(IUser user);
-      }
-      ```
-* Avoid doing more than setting properties in a constructor; provide a method on the class to perform any extra work after the object has been constructed.
-* Avoid calling virtual methods from a constructor because the most-derived version will be called, but before the constructor for that most-derived class has executed. The example below illustrates this problem, where the override `CaffeineAddict.GoToWork()` uses Coffee before it has been initialized.
-
-      ```csharp
-      public interface IBeverage
-      {
-        public bool Empty { get; }
-      }
-
-      public abstract class Employee
-      {
-        public Employee()
-        {
-          GoToWork();
-        }
-
-        protected abstract void GoToWork();
-
-        protected void Drink(IBeverage beverage)
-        {
-          if (!beverage.Empty) // Crashes when initializing CaffeineAddict
-          {
-            // drink it
-          }
-        }
-      }
-
-      public class CaffeineAddict : Employee
-      {
-        public CaffeineAddict(IBeverage coffee)
-          : base()
-        {
-          _coffee = coffee;
-        }
-
-        public IBeverage Coffee
-        {
-          get { return _coffee; }
-        }
-
-        protected override void GoToWork()
-        {
-          Drink(Coffee);
-        }
-
-        private IBeverage _coffee;
-      }
-      ```
-* To avoid duplicating code, but also to avoid exposing an unwanted default constructor, use a `protected` default constructor. For example:
-
-      ```csharp
-      protected Query()
-      {
-        _restrictions = new List<IRestriction>();
-        _sorts = new List<ISort>();
-      }
-
-      public Query(IMetaClass model)
-        : this()
-      {
-        Debug.Assert(model != null);
-        Model = model;
-      }
-
-      public Query(IDataRelation relation)
-        : this()
-      {
-        Debug.Assert(relation != null);
-        Relation = relation;
-      }
-      ```
-* Consider using a `static` factory method (e.g. on a `*Tools` class) if construction of an object is very complex or would require a large number of constructor parameters.
+    Relation = relation;
+  }
+  ```
 
 ## Classes
 
-* Never declare more than one field per line; each field should be an individually documentable entity.
-* Do not use public or protected fields; use private fields exposed through properties instead.
+* Declare at most one field per line.
+* Do not use public or protected fields; use properties instead.
 
 ### Abstract Classes
 
-Please see section 2.1 – Abstractions for a discussion of when to use abstract classes.
-
-* Do not define `public` or `protected internal` constructors for abstract types; instead, define a `protected` or `internal` one.
-* Consider providing a partial implementation of an abstract class that handles some of the abstraction in a standard way; implementers can use this class as a base and avoid having to repeat code in their own implementations. Such classes should use the “Base” suffix.
+* Define constructors for abstract classes as `protected`.
+* Consider providing a partial implementation of an abstract class that handles some of the abstraction in a standard way; implementors can use this class as a base and avoid having to repeat code in their own implementations. Such classes should use the “Base” suffix.
 
 ### Static Classes
 
 * Do not mark a class as static if it has instance members.
-* Do not create too many static classes; instead, determine whether new functionality can be added to an existing static class.
+* Use static classes only for extension methods _or_ constants.
+* Group functionality into logical static classes.
 
 ### Sealed Classes & Methods
 
 * Do not declare protected or virtual members on sealed classes
 * Avoid sealing classes unless there is a very good reason for doing so (e.g. to improve reflection performance).
 * Consider sealing only selected members instead of sealing an entire class.
-* Consider sealing members that you have overridden if you don’t want descendents to avoid your implementation.
+* Consider sealing members that you have overridden if you don’t want descendants to avoid your implementation.
 
-### Private and Internal Classes
+### Inner Classes
 
-* Make nested classes private wherever possible. Internal classes will also clutter the namespace and object browser. Expose them only if the class really has utility outside of the class within which it is nested.
-* Use private classes for collect implementation methods for classes that get too large.
-* If a class has multiple nested, private classes, consider moving them to a separate file and declaring them within another partial of the surrounding class.
-* Consider whether all classes in an API must be exposed or only one or two of them. All others can be declared internal and reduce the surface of the API exposed by the assembly.
+* Inner classes should be `private` or `protected`.
+* Inner types should not replace namespaces for organization.
+* Use nested types if the inner type is logically within the other type (e.g. a `TableOfContents` class may have an `Options` inner class or a `Builder` inner class).
+* Use an inner class to group private or protected constants.
+
+Alternatives to consider:
+
+* Consider using composition to inject the class instead, to allow customization and testing.
+* Consider _local methods_ as an alternative to a `private` class.
+
+### Internal Classes & Methods
+
+* Wherever possible, make implementation classes `internal` to reduce the surface area of the API.
+* Prefer `private` and `protected` to `internal` methods.
+* Instead of using `internal` to mean _assembly-local_, use composition to provide access to shared functionality
+
+Most historical uses for `internal` methods can be implemented with other, better patterns. One use is to allow overriding of a method inside an assembly, but not outside. Two questions: why are you overriding instead of composing? And, if it's useful for your library or framework to be able to override, why deny this to consumers?
 
 ## Interfaces
 
-Please see section 2.1 – Abstractions for a discussion of when to use interfaces.
+### Design
 
-* Use interfaces to “fake” multiple-inheritance.
-* Define interfaces if there will be more than one implementation of a hierarchy; without multiple-inheritance, this is the only way to remain flexible as to the implementation.
-* Define interfaces to clearly define what comprises an API; an interface will generally be smaller and more tightly-defined that the class that implements it. A class-based hierarchy runs the risk of mixing interface methods with implementation methods.
-* Consider using a C# attribute instead of a marker interface (an interface with no members). This makes for a cleaner inheritance representation and indicates the use of the marker better (e.g. NUnit tests as well as the serializing subsystem for .NET use attributes instead of marker interfaces).
-* Re-use interfaces as much as possible to avoid having many very similar interfaces that cause confusion as to which one should be used where.
-* Keep interfaces relatively small in order to ease implementation (5-10 members).
-* Where possible, provide an abstract class or default descendent that application code can use for implementing an interface. This provides both an implementation example and some protection from future changes to the interface.
-* Use interfaces where the functionality isn’t the direct purpose of the object or to expose a part of the class’s functionality (as with aspect-oriented programming).
+* Use interfaces to clearly define your API surface, separate from implementation.
+* Use interfaces so that tests can mock behavior and test more precisely.
+* Remove interfaces that are not used outside of testing code.
+* Always create an interface for composed objects (i.e. those that are injected into other constructors) to ease testing and mocking.
+* An interface should be as concise as possible. This allows consumers to precisely mock or override functionality.
+* Remember the single-responsibility principle.
+* If the standard implementation of a method can always be written in terms of other interface methods, consider defining an extension method for the interface instead. This is a nice way of providing a default implementation for all implementors.
+* Avoid _marker_ interfaces. Attributes are a more appropriate way to mark types without _changing_ the type.
+
+### Usage
+
+* Avoid similar interfaces that cause confusion as to which one should be used where. Re-use interfaces wherever  possible and appropriate.
+* Provide a standard implementation or an abstract base. This provides both an implementation example and some protection from future changes to the interface.
 * Use explicit interface implementation where appropriate to avoid expanding a class API unnecessarily.
-* Each interface should be used at least once in non-testing code; otherwise, get rid of it.
-* Always provide at least one, tested implementation of an interface.
 
 ## Structs
 
@@ -385,7 +401,7 @@ Consider defining a structure instead of a class if most of the following condit
 
 Use the following rules when defining a `struct`.
 
-* Avoid methods; at most, have only one or two methods other than overrides and operator overloads.
+* Avoid methods; at most, have only one or two methods other than equality overrides and operator overloads.
 * Provide parameterized constructors for initialization.
 * Overload operators and equality as expected; implement `IEquatable` instead of overriding `Equals` in order to avoid the negative performance impact of boxing and un-boxing the value.
 * A `struct` should be valid when uninitialized so that consumers can declare an instance without calling a constructor.
@@ -393,86 +409,87 @@ Use the following rules when defining a `struct`.
 
 ## Enumerations
 
-* Always use enumerations for strongly-typed sets of values
-* Use enumerations instead of lists of static constants _unless_ that list can be extended by descendent code; if the list is not logically open-ended, use an `enum`.
-* Enumerations are like interfaces; be extremely careful of changing them when they are already included in code that is not under your control (e.g. used by a framework that is, in turn, used by external application code). If the enumeration must be changed, use the `ObsoleteAttribute` to mark members that are no longer in use.
-* Do not assign a type to an `enum` unless absolutely necessary; use the default type of `Int32` whenever possible.
+### Design
+
+* Use enumerations for strongly typed sets of values
+* Use a singular name (e.g. `MigrationPhase` instead of `MigrationPhases`)
+* Use enumerations for a list of constants that is not logically open-ended; otherwise, use a `static` class with constants so that consumers can extend the list.
+* Use the default type of `Int32` whenever possible.
 * Do not include sentinel values, such as `FirstValue` or `LastValue`.
-* Do not assign explicit values to simple enumerations except to enforce specific values for storage in a database.
 * The first value in an enumeration is the default; make sure that the most appropriate simple enumeration value is listed first.
+* Do not assign explicit values except to enforce specific values for storage in a database or to match an external API.
+
+### Usage
+
+* Enumerations are like interfaces; be extremely careful of changing them when they are already included in code that is not under your control (e.g. used by a framework that is, in turn, used by external application code). If the enumeration must be changed, use the `ObsoleteAttribute` to mark members that are no longer in use.
 
 ### Bit-sets
 
 * Use the `[Flags]` attribute to make a bit-set instead of a simple enumeration.
-* Bit-sets always have plural names, whereas simple enumerations are singular.
+* Use plural names for bit-sets.
 * Assign explicit values for bit-sets in powers of two; use hexadecimal notation.
 * The first value of a bit-set should always be `None` and equal to `0x00`.
 * In bit-sets, feel free to include commonly-used aliases or combinations of flags to improve readability and maintainability. One such common value is `All`, which includes all available flags and, if included, should be defined last. For example:
-
-      ```csharp
-      [Flags]
-      public enum QuerySections
-      {
-        None = 0x00,
-        Select = 0x01,
-        From = 0x02,
-        Where = 0x04,
-        OrderBy = 0x08,
-        NotOrderBy = All & ~OrderBy,
-        All = Select | From | Where | OrderBy,
-      }
-      ```
-    The values `NotOrderBy` and `All` are aliases defined in terms of the other values. Note that the elements here are not aligned because it is expected that they will be documented, in which case column-alignment won’t make a difference in legibility.
+  ```csharp
+  [Flags]
+  public enum QuerySections
+  {
+    None = 0x00,
+    Select = 0x01,
+    From = 0x02,
+    Where = 0x04,
+    OrderBy = 0x08,
+    NotOrderBy = All & ~OrderBy,
+    All = Select | From | Where | OrderBy,
+  }
+  ```
+  The values `NotOrderBy` and `All` are aliases defined in terms of the other values. Note that the elements here are not aligned because it is expected that they will be documented, in which case column-alignment won’t make a difference in legibility.
 * Avoid designing a bit-set when certain combinations of flags are invalid; in those cases, consider dividing the enumeration into two or more separate enumerations that are internally valid.
-
-## Nested Types
-
-* Nested types should not replace namespaces for organization.
-* Use nested types if the inner type is logically within the other type (e.g. a `TableOfContents` class may have an `Options` inner class or a `Builder` inner class).
-* Use nested types if the inner type should have access to all members of the outer type.
-* Do not use public nested types unless you have a good reason for doing so (e.g. in the case of the `Options` class described above).
-* If a nested type needs a public constructor so that other types can create instances, then it probably shouldn’t be nested.
-* Delegate declarations should not be nested within the type because this reduces re-use of delegate declarations between types.
-* Use a nested type to group private or protected constants.
 
 ## Local Variables
 
-* Declare a local variable as close as possible to its first use (and within the most appropriate scope).
-* Local variables of the same type may be declared together, but only if they are not initialized.
-
-      ```csharp
-      IMetaEndpoint source, target;
-      ```
-* If a local variable is initialized, put the initialization on the same line as the declaration. If the line gets too long, use multiple lines as described in section 4.5 – Line Breaking.
-* Local variables that need to be initialized cannot be declared on the same line unless they have the same initialization value.
-
-      ```csharp
-      int startOfWord = firstCharacter = 0;
-      ```
+* Use `var` and initialization wherever possible.
+* Declare local variables individually.
+* Initialize a local variable on the same line as the declaration
+* Use standard line-breaking rules outline elsewhere for longer, fluent initialization.
 
 ## Event Handlers
 
-You should use the pattern and support classes for event-handling provided by the .NET library.
+### Alternatives
 
-* Do not expose delegates as `public` members; instead declare events using the `event` keyword.
-* Do not add a method to a delegate with `new EventHandler(…);` instead, use delegate inference.
-* Do not define custom delegates for event handling; instead use `EventHandler<T>`.
-* Put all extra event data into an `EventArgs` descendent; subsequent versions can alter this descendent without changing the signature.
+* Do not use event handlers other than in legacy code (e.g. Winforms)
+* For user interfaces, use the MVVM pattern instead
+* For back-end objects, use messaging or event-aggregator patterns
+
+### Rules
+
+* Declare events using the `event` keyword.
+* Do not use delegate members.
+* Use delegate inference instead of writing `new EventHandler(…)`.
+* Declare events with `EventHandler<T>`.
+* An event has two parameters named `sender` of type `object` and `args` with an event-specific type.
+* Do not allow `null` for either the `sender` or the `args` parameters.
+* Use `EventArgs` as the base class for custom arguments.
 * Use `CancelEventArgs` as the base class if you need to be able to cancel an event.
-* Neither the `sender` parameter nor the `args` parameter may be `null`; this avoids forcing event handlers to check for `null`.
-* `EventsArgs` descendents should declare only properties, not methods or other application logic.
+* Custom arguments should include only properties, but no logic.
 
 ## Operators
 
-* Be extremely careful when overloading operators; in general, you should only do so for `structs`. If you feel that an operator overload is especially clever, it probably isn’t; check with another developer before coding it.
-* In other words: do not provide a conversion operator if such conversion is not clearly expected by the end users.
-* Avoid overriding the == operator for reference types; override the `Equals()` method instead to avoid redefining reference equality.
-* If you do override Equals(), you should also override `GetHashCode()`.
+### Caveats
+
+* Avoid overloading operators in general; it's not appropriate for most problem domains.
+* Do not override the `==`-operator for reference types; instead, override the `Equals()` method to avoid redefining reference equality.
+* Do not provide a conversion operator unless it can be logically expected by consumers of the API.
+
+### Recommendations
+
+* If an operator is needed, re-use operator conventions from other languages or the problem domain of the API (e.g. mathematical operators)
+* If you do override Equals(), you must also override `GetHashCode()`.
 * If you do override the == operator, consider overriding the other comparison operators (!=, <, <=, >, >=) as well.
-* You should return false from the `Equals()` function if the objects cannot be compared. However, if they are different types, you may throw an exception.
-* Do not mix and match conversion operators and types. The type `MetaString` can convert to `System.String` but should not convert to `System.Int32`. Instead, use a constructor to initialize from types that are not in the same domain.
-* Use explicit conversions where the conversion may result in a loss of data; If the type to which the operator converts can represent all of the data from which it converts, feel free to define an implicit operator.
-* Do not throw exceptions from implicit casts; implicit casts should only be used for operators that will never fail (or fail only in otherwise catastrophic situations).
+* You should return `false` from the `Equals()` function if the objects cannot be compared. However, if they are different types, you may throw an exception.
+* Do not mix and match conversion operators and types. The type `DynamicString` can convert to `System.String` but should not convert to `System.Int32`. Instead, use a constructor to initialize from types that are not in the same domain.
+* Use `implicit` operators _only_ where the conversion _cannot_ result in a loss of data or an exception.
+* Use an `explicit` operator where data-loss or exceptions are possible.
 
 ## Loops & Conditions
 
@@ -480,187 +497,242 @@ You should use the pattern and support classes for event-handling provided by th
 
 * Do not change the loop variable of a for-loop.
 * Update while loop variables either at the beginning or the end of the loop.
-* Keep loop bodies short and avoid excessive nesting.
-* Consider using an inner class or other private methods if the body of a loop gets too complex.
+* Keep loop bodies short; avoid excessive nesting.
 
-### If Statements
+### Conditional statements
 
-* Do not compare to `true` or `false`; instead, compare pure Boolean expressions.
-* Initialize Boolean values with simple expressions rather than using an if-statement; always use parentheses to delineate the assigned expression.
-
-      ```csharp
-      bool needsUpdate = (Count > 0 && Objects[0].Modified);
-      ```
+* Do not compare to `true` or `false`.
+* Use parentheses only if the precedence isn't relatively obvious
+* Use _StyleCop_ or _ReSharper_ to indicate where parentheses are needed and stick to it.
+* Initialize Boolean values with simple expressions rather than using an if-statement.
+  ```csharp
+  bool needsUpdate = Count > 0 && Objects.Any(o => o.Modified);
+  ```
 * Always use brackets for flow-control blocks (`switch`, `if`, `while`, `for`, etc.)
 * Do not add useless `else` blocks. An `if` statement may stand alone and an `else if` statement may be the last condition. [\[2\]](#footnote_2)
-
-      ```csharp
-      if (a == b)
-      {
-        // Do something
-      }
-      else if (a > b)
-      {
-        // Do something else
-      }
-
-      // No final "else" required
-      ```
+  ```csharp
+  if (a == b)
+  {
+    // Do something
+  }
+  else if (a > b)
+  {
+    // Do something else
+  }
+  // No final "else" required
+  ```
 * Do not force really complicated logic into an `if` statement; instead, use local variables to make the intent clearer. For example, imagine we have a lesson planner and want to find all unsaved lessons that are either unscheduled or are scheduled within a given time-frame. The following condition is too long and complicated to interpret quickly:
-
-      ```csharp
-      if (!lesson.Stored && (((StartTime <= lesson.StartTime) && (lesson.EndTime <= EndTime)) || ! lesson.Scheduled))
-      {
-        // Do something with the lesson
-      }
-      ```
-    Even trying to apply the line-breaking rules results in an unreadable mess:
-
-      ```csharp
-      if (!lesson.Stored &&
-        (((StartTime <= lesson.StartTime) && (lesson.EndTime <= EndTime)) ||
-        ! lesson.Scheduled))
-      {
-        // Do something with the lesson
-      }
-      ```
-    Even with this valiant effort, the intent of the ||-operator is difficult to discern. With local variables, however, the logic is much clearer:
-
-      ```csharp
-      bool lessonInTimeSpan = ((StartTime <= lesson.StartTime) && (lesson.EndTime <= EndTime));
-      if (!lesson.Stored && (lessonInTimeSpan || ! lesson.Scheduled))
-      {
-        // Do something with the lesson
-      }
-      ```
+  ```csharp
+  if (!lesson.Stored && ((StartTime <= lesson.StartTime && lesson.EndTime <= EndTime) || !lesson.Scheduled))
+  {
+    // Do something with the lesson
+  }
+  ```
+  Even trying to apply the line-breaking rules results in an unreadable mess:
+  ```csharp
+  if (!lesson.Stored &&
+    ((StartTime <= lesson.StartTime && lesson.EndTime <= EndTime) ||
+    ! lesson.Scheduled))
+  {
+    // Do something with the lesson
+  }
+  ```
+  Even with this valiant effort, the intent of the ||-operator is difficult to discern. With local variables, however, the logic is much clearer:
+  ```csharp
+  bool lessonInTimeSpan = StartTime <= lesson.StartTime && lesson.EndTime <= EndTime;
+  if (!lesson.Stored && (lessonInTimeSpan || !lesson.Scheduled))
+  {
+    // Do something with the lesson
+  }
+  ```
 
 ### Switch Statements
 
-* Include a `default` statement that `asserts` or `throws` if all valid values are handled. This also applies for `enums` because the compiler does not realize that no default statement is needed.
-* Use the following form when values initialized by the switch-statements are to be used elsewhere in the method.
+* Use `throw new UnexpectedEnumException(value)` in the `default` branch. This is more semantically correct than `InvalidEnumArgumentException`, which does not allow you to indicate the unexpected value _and_ errorneously suggests that the value was invalid.
+* The following code is correct:
+  ```csharp
+  IDatabase result = null;
+  switch (type)
+  {
+    case DatabaseType.PostgreSql:
+      result = new PostgreSqlMetaDatabase();
+      break;
+    case DatabaseType.SqlServer:
+      result = new SqlServerMetaDatabase();
+      break;
+    case DatabaseType.SQLite:
+      result = new SQLiteMetaDatabase();
+      break;
+    default:
+      throw new UnexpectedEnumException(value);
+  }
 
-      ```csharp
-      IDatabase result = null;
-      switch (type)
-      {
-        case DatabaseType.PostgreSql:
-          result = new PostgreSqlMetaDatabase();
-          break;
-        case DatabaseType.SqlServer:
-          result = new SqlServerMetaDatabase();
-          break;
-        case DatabaseType.SQLite:
-          result = new SqliteMetaDatabase();
-          break;
-        default:
-          Debug.Assert(false, String.Format("Unknown database type: {0}", type));
-      }
+  // Work with "result".
 
-      // Work with "result".
-
-      return result;
-      ```
-* In the case where the switch statement is the either the entire method or the final block in a method, use return statements directly from the case labels. In this case, the assertion is replaced with an exception or it won’t compile.
-
-      ```csharp
-      switch (type)
-      {
-        case DatabaseType.PostgreSql:
-          return new PostgreSqlMetaDatabase();
-        case DatabaseType.SqlServer:
-          return new SqlServerMetaDatabase();
-        case DatabaseType.SQLite:
-          return new SqliteMetaDatabase();
-        default:
-          throw new ArgumentException("type", String.Format("Unknown type: {0}", type));
-      }
-      ```
-* The `default` label must always be the last label in the statement.
+  return result;
+  ```
+* However, it is strongly recommended to extract this logic to a private method. This version is cleaner: the complexity has been moved out of the main method and the `return` is easier to read than the assignment followed by a `break` in the version above.
+  ```csharp
+  switch (type)
+  {
+    case DatabaseType.PostgreSql:
+      return new PostgreSqlMetaDatabase();
+    case DatabaseType.SqlServer:
+      return new SqlServerMetaDatabase();
+    case DatabaseType.SQLite:
+      return new SqliteMetaDatabase();
+    default:
+      throw new UnexpectedEnumException(value);
+  }
+  ```
+* The `default` label must always be the last label in the statement. In C# 7, the default label is always interpreted last anyway.
 
 ### Ternary and Coalescing Operators
 
-The ternary operator is a specialized form of an `if`/`then` statement with the following form:
-
-```csharp
-return (_value != null) ? Value.ToString() : "NULL";
-```
-If the condition (`_value != null` in this case) is true, the operator returns the value after the question mark; otherwise, it returns the value after the colon.
-
-The coalescing operator is a specialized form of the ternary operator, which has the following form:
-
-```csharp
-return Target ?? Source;
-```
-The operator returns the expression before the two question marks if it is not `null`; otherwise, it returns the expression after the two question marks.
-
 * Use these operators for simple expressions and results.
-* Do not use these operators with long conditions and values; instead, use an `if`/`then` statement.
-* Do not break statements with these operators in them over multiple lines.
+* Do not use these operators with long conditions and values. Instead, use local variables and/or standard conditional statements.
 
 ## Comments
 
 ### Formatting & Placement
 
-* Comments are indented at the same level as the code they document.
-* Place comments above the code being commented.
+* Place comments above referenced code.
+* Indent comments at the same level as referenced code.
 
 ### Styles
 
 * Use the single-line comment style—`//`—to indicate a comment.
 * Use four slashes —`////`—to indicate a single line of code that has been temporarily commented.
-* Use the multi-line comment style—`/*` … `*/`—to indicate a commented-out block of code. In general, code should never be checked in with such blocks.
+* Use the multi-line comment style—`/*` … `*/`—to indicate a commented-out block of code. In general, code should not be checked in with such blocks.
 * Consider using a compiler variable to define a non-compiling block of code; this practice avoids misusing a comment.
-
-      ```csharp
-      #if FALSE
-            // commented code block
-      #endif
-      ```
+  ```csharp
+  #if FALSE
+        // commented code block
+  #endif
+  ```
 * Use the single-line comment style with `TODO` to indicate an issue that must be addressed. Before a check-in, these issues must either be addressed or documented in the issue tracker, adding the URL of the issue to the TODO as follows:
-
-      ```csharp
-      // TODO http://issue-tracker.encodo.com/?id=5647: [Title of the issue in the issue tracker]
-      ```
+  ```csharp
+  // TODO http://issue-tracker.encodo.com/?id=5647: [Title of the issue in the issue tracker]
+  ```
 
 ### Content
 
 * Good variable and method names go a long way to making comments unnecessary.
 * Comments should be in US-English; prefer a short style that gets right to the point.
 * A comment need not be a full, grammatically-correct sentence. For example, the following comment is too long
-
-      ```csharp
-      // Using a granularity that is more than 50% of the size causes a crash!
-
-      int Granularity = Size / 5;
-      ```
-    Instead, you should stick to the essentials so that the warning is immediately clear:
-
-      ```csharp
-      int Granularity = Size / 5; // More than 50% causes a crash!
-      ```
-* Comments should be spellchecked. [\[3\]](#footnote_3)
+  ```csharp
+  // Using a granularity that is more than 50% of the size is not valid!
+  int Granularity = Size / 5;
+  ```
+  Instead, you should stick to the essentials so that the warning is immediately clear:
+  ```csharp
+  int Granularity = Size / 5; // More than 50% is not valid!
+  ```
+* Comments should be spellchecked.
 * Comments should not explain the obvious. In the following example, the comment is superfluous.
-
-      ```csharp
-      public const int Granularity = Size / 5; // granularity is 20% of size
-      ```
-* Use comments to explain algorithms or tricky bits that aren’t immediately obvious from a quick read.
+  ```csharp
+  public const int Granularity = Size / 5; // granularity is 20% of size
+  ```
+* Use comments to explain algorithms or tricky bits that aren't immediately obvious from a quick read.
 * Use comments to indicate where a hard-won bug-fix was added; if possible, include a reference to a URL in an issue tracker.
 * Use comments to indicate assumptions not already evident from assertions or thrown exceptions.
-* Longer comments should always precede the line being commented. [\[4\]](#footnote_4)
+* Longer comments should always precede the line being commented. Separate multi-line comments with an additional newline before the code.
 * Short comments may appear to the right of the code being commented, but only for lines ending in semicolon (i.e. marking the end of a statement). For example:
-
-      ```csharp
-      int Granularity = Size / 5; // More than 50% causes a crash!
-      ```
+  ```csharp
+  int Granularity = Size / 5; // More than 50% is not valid!
+  ```
 * Comments on the same line as code should _never_ be wrapped to multiple lines.
+* Replace comments with private methods with descriptive names. For example, the following code is commented, but a bit wordy.
+  ```csharp
+  public void MethodOne()
+  {
+    // Collect and aggregate results
+    var projections = new List<Result>();
+    foreach (var p in OriginalProjections)
+    {
+      // Do a bunch of stuff with p
+      projections.Add(new Projection(p, i))
+    }
+
+    // Format the projections into a text report
+    var lines = new List<string>();
+    foreach (var projection in projections)
+    {
+      var line = string.Format($"Some text with a {projection}");
+
+      // Work with the line
+
+      lines.Add(line);
+    }
+
+    // Save the lines to file
+    File.WriteAllLines(OutputPath, lines);
+  }
+  ```
+  Instead, use methods to achieve the same clarity without comments. At the same time, we make use of better types (`IEnumerable<T>`) and constructs (`Select()`, `NotNull`) to streamline and improve the code even more.
+  ```csharp
+  public void MethodOne()
+  {
+    var projections = CalculateFinalProjections();
+    var lines = CreateReport(projections);
+
+    StoreReport(lines);
+  }
+
+  [NotNull]
+  private IEnumerable<Projection> CalculateFinalProjections()
+  {
+    return OriginalProjections.Select(CreateFinalProjection);
+  }
+
+  [NotNull]
+  private Projection CreateFinalProjection([NotNull] Projection p)
+  {
+    if (p == null) { throw new ArgumentNullException(nameof(p)); }
+
+    // Do a bunch of stuff with p
+
+    return new Projection(p, i));
+  }
+
+  [NotNull]
+  private IEnumerable<string> CreateReport([NotNull] IEnumerable<Projection> projections)
+  {
+    if (projections == null) { throw new ArgumentNullException(nameof(projections)); }
+
+    return projections.Select(p => string.Format($"Some text with a {p}"));
+  }
+
+  private void StoreReport([NotNull] IEnumerable<string> lines)
+  {
+    if (lines == null) { throw new ArgumentNullException(nameof(lines)); }
+
+    File.WriteAllLines(OutputPath, lines);
+  }
+  ```
+  This version obviously needs no comments: it is now clear what `MethodOne` does. In fact, we can streamline `MethodOne` to a single line without losing legibility. Using the syntactic constructs of the language eliminates the need for many, if not all, comments.
+  ```csharp
+  public void MethodOne()
+  {
+    StoreReport(CreateReport(CalculateFinalProjections()));
+  }
+  ```
+* Replace comments with local variables with descriptive names.
+  ```csharp
+  // For new lessons that are within the time-span or not scheduled
+  if (!lesson.Stored && ((StartTime <= lesson.StartTime && lesson.EndTime <= EndTime) || !lesson.Scheduled)) { }
+  ```
+  With local variables, however, the logic is much clearer and no comment is required:
+  ```csharp
+  bool lessonInTimeSpan = StartTime <= lesson.StartTime && lesson.EndTime <= EndTime;
+
+  if (!lesson.Stored && (lessonInTimeSpan || !lesson.Scheduled)) { }
+  ```
 
 ## Grouping with `#region` Tags
 
-* Use `#region` tags to distinguish groups of functions; use the auto-implement macro in _Visual Studio_ to ensure that interface implementations are surrounded in `#region` tags describing which interface is being implemented by the enclosed functions.
-* Use regions for generated code blocks.
-* You may use regions to demarcate logical groups of members or types.
-* A region should generally enclose more than one element.
+* Do not use `#region` tags.
+* A historical usage of `#region` tags is to delineate code regions to be ignored by ReSharper in generated files. Instead, tell ReSharper to ignore files with the pattern of the generated filenames (e.g. `*.Class.cs`).
 
 ## Compiler Variables
 
@@ -702,7 +774,7 @@ public static class EncodoCompilerOptions
 
 This approach has the following advantages:
 
-* The compiler checks all code paths instead of just the one satisfying the current options[\[5\]](#footnote_5); this avoids unknowingly retaining incompatible code in a library or application.
+* The compiler checks all code paths instead of just the one satisfying the current options; this avoids unknowingly retaining incompatible code in a library or application.
 * Code formatting and indenting is not broken up by (possibly overlapping) compile conditions; the name `EncodoCompilerOptions` makes the connection to the compiler obvious enough.
 * The compiler option is referenced only once, avoiding situations in which some code uses one compiler option (e.g. `ENCODO_DEVELOPER`) and other code uses another, misspelled option (e.g. `ENCODE_DEVELOPER`).
 
@@ -710,6 +782,3 @@ This approach has the following advantages:
 
 1. <a name="footnote_1"></a>In scenarios that require a significant amount of boxing and un-boxing, value types perform poorly as compared to reference types.
 1. <a name="footnote_2"></a>This is noted only because some style guides explicitly require that the last statement in an “if/else if” block is an empty “else” block if none is otherwise needed.
-1. <a name="footnote_3"></a>CodeSpell is a good and relatively inexpensive spellchecker for Visual Studio 2005 and 2008; if you’re already using ReSharper, the Agent Smith plugin provides superb integration with multiple dictionaries.
-1. <a name="footnote_4"></a>A newline separating the comment from its code is the recommended style, as it tends to separate the comments and the code into separate, but interleaved blocks. This is, however, just a suggestion.
-1. <a name="footnote_5"></a>One drawback is that the editor doesn’t display the “unused” code as disabled, as it does when using compiler options directly.

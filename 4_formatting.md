@@ -301,6 +301,20 @@ Do not use regions.
   }
   ```
 
+### Constructors
+
+* Base constructors should be on a separate line, indented one level.
+  ```csharp
+  public class B : A
+  {
+    B(string name)
+      : base(name)
+    {
+    }
+  }
+  ```
+
+
 ### Multi-Line Text
 
 * Longer string-formatting statements with newlines should be formatted using the verbatim strings (`@""`) and should avoid using concatenation:

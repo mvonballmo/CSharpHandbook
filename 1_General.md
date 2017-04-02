@@ -20,15 +20,24 @@ This handbook includes:
 * General programming advice and best practices
 * General formatting and style recommendations
 * C#-specific sections
-* Encodo-specific sections
-* Library-specific sections (e.g. for Quino)
 
-The current environment at the time of release is:
+## Environment
+
+The recommended environment and tools at this time are:
 
 * _Microsoft Visual Studio 2017_
-* C# 7.0
+* _JetBrains ReSharper 2016.3.2_
+* _StyleCop 4.7_
+* _StyleCop by JetBrains_ extension for ReSharper
+* _Cyclomatic Complexity_ extension for ReSharper
+* _EditorConfig_
+* _C# 7.0_
 
 For older versions of Visual Studio and C#, use what you can or refer to older versions of this handbook.
+
+### Settings files
+
+This repository includes configuration files that set up the rules outlined in this handbook for _StyleCop_ and _ReSharper_ and _EditorConfig_.
 
 ## Fixing Problems in the Handbook
 

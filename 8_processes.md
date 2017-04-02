@@ -1,22 +1,37 @@
-# Processes
+# Documentation
 
-## Documentation
+## General
 
-### General
+* Include a `README.md` file at the root of the project that includes the following information:
+  * Dependencies
+  * Basic configuration
+  * Basic command line
+  * Links to other documentation
+* Include a `LICENSE` file at the root of the project that describes licensing restrictions
+* Include conceptual documentation for each concept/component to provide an overview and examples of how to use the product.
+* Frameworks should prov
 
-* Documentation should be written in English and must be grammatically correct (i.e. do not just use lists of keywords or short phrases; prefer full sentences or clauses).
-* All documentation ends in a period.
-* Use XML documentation to document public and protected elements.
-* Method-level documentation is the absolute minimum (as it will be displayed by code-completion).
-* Private and internal code should only be documented when needed; do not document small methods or methods whose purpose is evident from their implementation.
-* Class documentation should include references to the important members for quick navigation and introduction to the class.
-* External tutorials and samples are strongly encouraged.
-* Frameworks should provide a more in-depth documentation of the API that includes high-level architecture, diagrams, examples and tutorials.
+
+ide a more in-depth documentation of the API that includes high-level architecture, diagrams, examples and tutorials.
+* Document members and types with XML documentation to enhance code-completion for developers using the library
+
+## Members and Types
+
+* Document public and protected elements.
+* Do not document private or internal members. Naming and method-size rules mean these will document themselves.
+* Document in English with US-English spelling and grammar.
+* Prefer full sentences or clauses; do not use lists of keywords or short phrases.
+* Include references to important members from class documentation.
 * Stay consistent when documenting similar members (e.g. properties); it’s ok to repeat yourself or to use the same exact structure for all members (see below for examples) as long as the documentation is useful for that member.
-* Do not add "using namespace" declarations just to resolve documentation references;  instead, use as much of the namespace path as necessary in the documentation reference itself.  It’s better to reserve ``using` for actual code, as the reference from the documentation is not resolved by the C# compiler when generating an executable, whereas the `using` is.
-* Do not ever add an assembly reference just to resolve a documentation reference. As above, for the code to pull in another assembly is fine, but the documentation should not introduce such a dependency.
 
-### XML Tags
+## Dependencies
+
+* Do not _add_ `using` declarations or assembly references to resolve documentation references.
+* Documentation should not introduce dependencies.
+* Consider moving the documentation out of the code and into higher-level conceptual documentation.
+* Otherwise, include the required namespace in the documentation reference itself.
+
+## XML Tags
 
 * Make sure the `<summary>` does not simply restate what is already obvious from the element; however, it should also be relatively short so that it is useful in code-completion.
 * Use a `<remarks>` section to indicate usage and to link to related members. It’s sometimes good to include references to other types or methods in descriptive sentences in addition to listing them in the `<seealso>` section.
@@ -26,32 +41,30 @@
 * Although you might want to use `<c>` tags for subsequent references to code elements if you want to keep the documentation readable in the code, it is highly recommended to use the `<paramref>` and `<typeparamref>` for all references because those can be refactored when the name changes.
 * Use `<seealso>` tags to link documentation for overloads or related methods.
 * Use the `<inheritdoc/>` tag for method overrides or interface implementations to avoid repeating documentation. [\[2\]](#footnote_2)  Add a `<remarks>` section to document specifics of the implementation (though this is actually quite rare, in practice).
-
-      ```c#
-      /// <inheritdoc/>
-      bool Exists { get; }
-      ```
+  ```csharp
+  /// <inheritdoc/>
+  bool Exists { get; }
+  ```
 * Use the `<include>` tag to include larger blocks of documentation (e.g. large `<remarks>` or `<example>` sections).
 * Avoid applying possessives to code elements; instead of writing "`<paramref name="prop">`’s value", write "the value of `<paramref name="prop">`".
 
-### Tool Support
+## Tool Support
 
 * The automatically generated documentation from tools like _Ghostdoc_ isn’t too bad, but you should enhance it so that it offers more than just a reformulation of what was obvious from the signature.
 * Avoid manually wrapping documentation; instead use a tool like the _Agent Smith_ plugin for _ReSharper_.
 
-### Classes
+## Classes
 
 * If the class is an abstract implementation of an interface, then use this formulation:
-
-      ```c#
-      /// <summary>
-      /// A base implementation of the <see cref="IMaker"/> interface.
-      /// </summary>
-      public abstract class MakerBase : IMaker { }
-      ```
+```csharp
+/// <summary>
+/// A base implementation of the <see cref="IMaker"/> interface.
+/// </summary>
+public abstract class MakerBase : IMaker { }
+```
 * If the class is the standard (or only) implementation of an interface, then use this formulation:
 
-      ```c#
+      ```csharp
       /// <summary>
       /// The standard implementation of the <see cref="IMaker"/> interface.
       /// </summary>
@@ -59,7 +72,7 @@
       ```
 * If the class is one of several implementations, then use this formulation:
 
-      ```c#
+      ```csharp
       /// <summary>
       /// An implementation of the <see cref="IMaker"/> interface that works with a
       /// Windows service.
@@ -67,14 +80,14 @@
       public class WindowsServerBasedMaker : IMaker { }
       ```
 
-### Methods
+## Methods
 
 * Parameters should be documented in the order that they appear in the method definition.
 * Use the word "given" to refer to parameters.
 * Summary documentation should not simply restate what is obvious from the method name and signature unless there is really nothing else to say.
 * The documentation should indicate which values are acceptable inputs for a parameter (e.g. whether or not it can be `null` or empty (for strings) or the range of acceptable values (for numbers). The example below demonstrates all of these principles:
 
-      ```c#
+      ```csharp
       /// <summary>
       /// Fills the <see cref="Body"> with random text using the given
       /// <paramref name="generator"> and <paramref name="seedValues">.
@@ -86,7 +99,7 @@
       void FillWithRandomText(IRandomGenerator generator, string seedValues);
 * For methods that return a Boolean value, use the following form:
 
-      ```c#
+      ```csharp
       /// <summary>
       /// Returns <c>true</c> if the value of <paramref name="prop"/> value has
       /// changed since it was loaded from or stored to the database; otherwise
@@ -100,7 +113,7 @@
 * It is highly recommended that exceptions thrown by a method be documented.
 * Exceptions should begin with “If…” as shown in the example below:
 
-      ```c#
+      ```csharp
       /// <summary>
       /// Gets the <paramref name="value"/> as formatted according to its type.
       /// </summary>
@@ -113,7 +126,7 @@
       /// formatted.</exception>
       string FormatValue(object value, CommandTextFormatHints hints);
 
-### Constructors
+## Constructors
 
 * Though you can use inherited documentation for constructors, this is not recommended; instead, you should be as specific as possible on the parameter documentation. The default constructor documentation created by _Ghostdoc_ is generally quite good.
 * Where possible, the documentation for a parameter should consist only of indicating to which property the parameter is assigned and the acceptable inputs (as with other methods). Let the linked property documentation describe the effect of the parameter; this accounts for many constructor parameters.
@@ -121,7 +134,7 @@
 
 The example below shows a class with constructor and properties documented according to the rules given:
 
-```c#
+```csharp
 class SortOrderAspect
 {
   /// <summary>
@@ -151,14 +164,14 @@ class SortOrderAspect
 }
 ```
 
-### Properties
+## Properties
 
 * If a property has a non-public setter, do not include the "or sets" part to avoid confusion for public users of the property.
 * Include both `<summary>` and `<value>` tags (they generate to different places in the documentation, despite their apparent redundancy). Yes, this means you will have repeated text (see the examples below).
 * In general, copy the text from the "summary" to the "value", adjusting grammar so that it makes sense.
 * The documentation for read-only properties should begin with “Gets” and the value elements should begin with the word “The”.
 
-      ```c#
+      ```csharp
       /// <summary>
       /// Gets the environment within which the database runs.
       /// </summary>
@@ -167,7 +180,7 @@ class SortOrderAspect
       ```
 * The documentation for read/write properties should begin with “Gets or sets”, as follows:
 
-      ```c#
+      ```csharp
       /// <summary>
       /// Gets or sets the database type.
       /// </summary>
@@ -176,7 +189,7 @@ class SortOrderAspect
       ```
 * Boolean properties should have the following form, formatting the value element as follows:
 
-      ```c#
+      ```csharp
       /// <summary>
       /// Gets a value indicating whether the database in <see cref="Settings"/> exists.
       /// </summary>
@@ -186,7 +199,7 @@ class SortOrderAspect
       ```
 * For properties with generic names, take care to specify exactly what the property does, rather than writing vague documentation like “gets or sets a value indicating whether this object is enabled”. Tell the user what “enabled” means in the context of the property being documented:
 
-      ```c#
+      ```csharp
       /// <summary>
       /// Gets or sets a value indicating whether automatic updating of the sort-order
       /// is enabled.
@@ -200,7 +213,7 @@ class SortOrderAspect
 
 The example below includes many of the best practices outlined in the previous sections. It includes `<seealso>`, `<exception>` and several `<paramref>` tags as well as clearly stating what it does with those parameters and their acceptable values  as well as including extra detail in the `<remarks>` section instead of the `<summary>`.
 
-```c#
+```csharp
 /// <summary>
 /// Copies the entire contents of the given <paramref name="input"/> stream to the
 /// given <paramref name="output"/> stream.
@@ -221,28 +234,23 @@ The example below includes many of the best practices outlined in the previous s
 public static void CopyTo(this Stream input, Stream output)
 ```
 
-### Testing
+## Testing
 
 * All code paths should be tested in a high-level manner, using integration tests; there is no utility in doing method testing. [\[3\]](#footnote_3)
 * Use the nUnit testing framework to create tests. [\[4\]](#footnote_4)
 
-## ReSharper
-
-This section discusses how to configure ReSharper to enforce the formatting rules outlined in this handbook.
-
-TODO
-
-## StyleCop/FxCop
-
-***TODO***
-
-## Releases
+# Releases
 
 * Include range-checking if it doesn't hamper performance.
 * Include debugging information.
 * Include code optimization.
 
-## Footnotes
+# Distribution
+
+* Provide XML documentation for Nuget packages
+* Provide symbols/source code for Nuget packages (or use DotPeek to extract/re-create source)
+
+# Footnotes
 
 1. <a name="footnote_1"></a>_ReSharper_ will offer to use namespaces in order to resolve documentation; you should ignore it.
 2. <a name="footnote_2"></a>_Ghostdoc_ will make a copy of documentation from overridden or implemented interface methods. Do not use this documentation; used <inheritdoc/> instead.
