@@ -20,6 +20,7 @@ These naming rules are designed for use with C#. While some general rules can be
 * Do not use Hungarian notation or any other prefixing notation to "group" types or members.
 * Names conform to **English grammar** (e.g. use `ImportableDatabase` instead of `DatabaseImportable`).
 * Communicate proper intent: the property name `UpdatesAutomatically` is better than `AutoUpdate`.
+* Names reflect semantics, not storage details; prefer `InterestRate` to `DecimalRate`.
 
 ## Capitalization
 

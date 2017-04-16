@@ -9,10 +9,7 @@
   * Links to other documentation
 * Include a `LICENSE` file at the root of the project that describes licensing restrictions
 * Include conceptual documentation for each concept/component to provide an overview and examples of how to use the product.
-* Frameworks should prov
-
-
-ide a more in-depth documentation of the API that includes high-level architecture, diagrams, examples and tutorials.
+* Frameworks should provide a more in-depth documentation of the API that includes high-level architecture, diagrams, examples and tutorials.
 * Document members and types with XML documentation to enhance code-completion for developers using the library
 
 ## Members and Types
