@@ -1,18 +1,18 @@
-# Encodo Programming Handbook
+# A C# Developer's Handbook
 
-## Best Practices, Conventions, Formatting and Style
+The focus of this document is on providing a reference for writing C#. It includes naming, structural and formatting conventions as well as best practices for writing clean, safe and maintainable code.
 
-### Abstract
+Many of the best practices and conventions apply equally well to other languages.
 
-This document covers many aspects of programming, from best practices for using existing and developing new code to naming, structural and formatting conventions.
+## History
 
-### Authors
+This document started out as a Microsoft Word document and was originally published at CodePlex in 2008 by [Encodo Systems AG](http://encodo.com). It has been updated a few times over the years, but not nearly often enough to keep pace with changes.
 
-* Marco von Ballmoos
-* Remo von Ballmoos
-* Marc Dürst
+This most recent version reflects a conversion to Markdown format and storage in a Git repository to improve version-tracking, collaboration and updates.
 
-### Version History
+It is also a complete overhaul in both content and structure to provide maximum benefit to various readers. It is also now maintained by Marco von Ballmoos (partner and senior developer at [Encodo Systems AG](http://encodo.com)) instead of by Encodo itself.
+
+## Versions
 
 |Version |  Date | Author | Comments
 | --- | --- | --- | ---
@@ -31,31 +31,24 @@ This document covers many aspects of programming, from best practices for using 
 
 ### Referenced Documents
 
-| Nr./Ref. | Document | Version | Date
-| --- | --- | --- | --- | ---
-| [1] | Microsoft Design Guidelines for Developing Class Libraries | 2.0 |
-| [2] | Microsoft Internal Coding Guidelines | 2.0 |
-| [3] | IDesign C# Coding Standards | 2.32 |
-| [4] | Coding Standard: C# by Philips Medical Systems | 1.3 |
-| [5] | De gustibus non est disputandum. (blog post by Anthony Steele) |  |
-| [6] | The Little Manual of API Design by Jasmin Blanchette, Trolltech, a Nokia company |  | 19.06.2008
-| [7] | Framework Design Guidelines | 4.7 | April 2017
+| Date | Document | Version
+| --- | --- | --- | ---
+| 20.07.2017 | [Microsoft C# Coding Conventions](https://msdn.microsoft.com/en-us/library/ff926074.aspx) | VS2015
+| 01.04.2017 | [Microsoft Framework Design Guidelines](https://msdn.microsoft.com/en-us/library/ms229042(v=vs.110).aspx) | 4.7
+| 01.07.2011 | [IDesign C# Coding Standards](https://www.scribd.com/document/236016479/IDesign-C-Coding-Standard-2-4) | 2.4
+| 19.05.2011 | [Optional argument corner cases, part four](http://blogs.msdn.com/b/ericlippert/archive/2011/05/19/optional-argument-corner-cases-part-four.aspx) by Eric Lippert |
+| 19.06.2008 | [The Little Manual of API Design](http://www4.in.tum.de/~blanchet/api-design.pdf) (PDF) by Jasmin Blanchette, Trolltech, a Nokia company |
+| 19.05.2005 | [Coding Standard: C# by Philips Medical Systems](http://www.sourceformat.com/pdf/cs-coding-standard-philips.pdf) (PDF) | 1.3
+| 26.01.2005 | [Microsoft Internal Coding Guidelines](https://blogs.msdn.microsoft.com/brada/2005/01/26/internal-coding-guidelines/) | 2.0
 
+### Terminology
 
-### Terms and Abbreviations
-
-| Term / Abbreviation | Definition / Explanation
+| Term | Definition
 | --- | ---
-| Encodo Style | This document (Encodo C# Handbook)
 | IDE | Integrated Development Environment
-| VS | Microsoft Visual Studio 2005/2008
+| VS | Microsoft Visual Studio
+| R# | JetBrains ReSharper
 | AJAX | Asynchronous JavaScript and XML
 | API | Application Programming Interface
 | DRY | Don’t Repeat Yourself
 | YAGNI | You Ain't Gonna Need It
-
-### Table of Contents
-
-> TODO
-
-Copyright © 2008–2009,2016 Encodo Systems AG. All Rights Reserved.
