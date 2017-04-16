@@ -39,6 +39,8 @@ This document covers many aspects of programming, from best practices for using 
 | [4] | Coding Standard: C# by Philips Medical Systems | 1.3 |
 | [5] | De gustibus non est disputandum. (blog post by Anthony Steele) |  |
 | [6] | The Little Manual of API Design by Jasmin Blanchette, Trolltech, a Nokia company |  | 19.06.2008
+| [7] | Framework Design Guidelines | 4.7 | April 2017
+
 
 ### Terms and Abbreviations
 

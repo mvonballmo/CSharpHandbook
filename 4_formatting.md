@@ -4,7 +4,7 @@ The formatting rules were designed for use with C#. Where possible, they should 
 
 ## Indenting and Spacing
 
-* An indent is two spaces ; it is never a tab.
+* An indent is two spaces.
 * Use a single space after a comma (e.g. between function arguments).
 * There is no space after the leading parenthesis/bracket or before the closing parenthesis/bracket.
 * There is no space between a method name and the leading parenthesis, but there is a space before the leading parenthesis of a flow-control statement.
@@ -39,20 +39,15 @@ The formatting rules were designed for use with C#. Where possible, they should 
 
 ### Return Statements
 
-_See 7.6 – Exit points (continue and return) for advice on how to use return statements._
-
-* You may use single-line, bracketed syntax for one-line returns with simple conditions:
-
+* If a `return` statement is not the only statement in a method, it should be separated from other code by a single newline.
+* Always use multi-line formatting for `return` statements so they're easy to see.
   ```csharp
-  if (Count != other.Count) { return false; }
+  if (Count != other.Count)
+  {
+    return false;
+  }
   ```
-* If a return statement is not the only statement in a method, it should be separated from other code by a single newline.
-  ```csharp
-  if (a == 1) { return true; }
-
-  return false;
-  ```
-* Do _not_ use else with return statements (use the style shown above instead):
+* Do _not_ use else with `return` statements.
   ```csharp
   if (a == 1)
   {
@@ -63,7 +58,7 @@ _See 7.6 – Exit points (continue and return) for advice on how to use return s
     return false;
   }
   ```
-  Instead, you should write the return as shown below.
+  Instead, you should write the `return` as shown below.
   ```csharp
   if (a == 1)
   {
@@ -72,34 +67,34 @@ _See 7.6 – Exit points (continue and return) for advice on how to use return s
 
   return false;
   ```
-  In this case, it's preferred to just use the condition directly.
+  In this case, return the condition instead.
   ```csharp
   return a == 1;
   ```
 
 ### Switch Statements
 
-* Contents under switch statements should be indented.
+* Contents under `switch` statements should be indented.
 * Braces for a case-label are not indented; this maintains a nice alignment with the brackets from the switch-statement.
 * Use braces for longer code blocks under case-labels; leave a blank line above the break-statement to improve clarity.
-```csharp
-switch (flavor)
-{
-  case Flavor.Up:
-  case Flavor.Down:
+  ```csharp
+  switch (flavor)
   {
-    if (someConditionHolds)
+    case Flavor.Up:
+    case Flavor.Down:
     {
-      // Do some work
+      if (someConditionHolds)
+      {
+        // Do some work
+      }
+
+      // Do some more work
+
+      break;
     }
-
-    // Do some more work
-
-    break;
+    default:
+      break;
   }
-  default:
-    break;
-}
   ```
 * Use braces to enforce tighter scoping for local variables used for only one case-label.
   ```csharp

@@ -51,3 +51,54 @@ Throw in expression-bodied members: of course.
 
 Exception conditions: also totally fine.
 
+From https://www.infoq.com/articles/Patterns-Practices-CSharp-7:
+
+✔ CONSIDER using tuple returns instead of out parameters when the list of fields is small and will never change.
+✔ DO use PascalCase for descriptive names in the return tuple. This makes the tuple fields look like properties on normal classes and structs.
+✔ DO use var when reading a tuple return without deconstructing it. This avoids accidentally mislabeling fields.
+✘ AVOID returning value tuples with a total size of more than 16 bytes. Note, reference variables always count as 4 bytes on a 32-bit OS and 8 bytes on a 64-bit OS.
+✘ AVOID returning value tuples if reflection is expected to be used on the returned value.
+✘ DO NOT use tuple returns on public APIs if there is a chance additional fields will need to be returned in future versions. Adding fields to a tuple return is a breaking change.
+
+
+ CONSIDER using deconstruction when reading tuple return values, but be aware of mislabeling mistakes.
+✔ DO provide a custom deconstruct method for structs.
+✔ DO match the field order in a class's constructor, ToString override, and Deconstruct method.
+✔ CONSIDER providing secondary deconstruct methods if the struct has multiple constructors.
+✘ DO NOT expose Deconstruct methods on classes when it isn't obvious what order the fields should appear in.
+✘ DO NOT expose multiple Deconstruct methods with the same number of parameters.
+
+
+ CONSIDER providing a tuple return alternative to out parameters.
+✘ AVOID using out or ref parameters. [See Framework Design Guidelines]
+✔ CONSIDER providing overloads that omit the out parameters so wildcards are not needed.
+
+
+
+ DO use local functions instead of anonymous functions when a delegate is not needed, especially when a closure is involved.
+✔ DO use local iterators when returning an IEnumerator when parameters need to be validated.
+✔ CONSIDER placing local functions at the very beginning or end of a function to visually separate them from their parent function.
+✘ AVOID using closures with delegates in performance sensitive code. This applies to both anonymous and local functions.
+
+
+CONSIDER using ref returns instead of index values in functions that work with arrays.
+✔ CONSIDER using ref returns instead of normal returns for indexers on custom collection classes that hold structs.
+✔ DO expose properties containing mutable structs as ref properties.
+✘ DO NOT expose properties containing immutable structs as ref properties.
+✘ DO NOT expose ref properties on immutable or read-only classes.
+✘ DO NOT expose ref indexers on immutable or read-only collection classes.
+
+✔ CONSIDER using ValueTask<T> in performance sensitive code when results will usually be returned synchronously.
+✔ CONSIDER using ValueTask<T> when memory pressure is an issue and Tasks cannot be cached.
+✘ AVOID exposing ValueTask<T> in public APIs unless there are significant performance implications.
+✘ DO NOT use ValueTask<T> when calls to Task.WhenAll or WhenAny are expected.
+
+DO use expression bodied members for simple properties.
+✔ DO use expression bodied members for methods that just call other overloads of the same method.
+✔ CONSIDER using expression bodied members for trivial methods.
+✘ DO NOT use more than one conditional (a ? b : c) or null-coalescing (x ?? y) operator in an expression bodied member.
+✘ DO NOT use expression bodied members for constructors and finalizers.
+
+ CONSIDER placing throw expressions on the right side of conditional (a ? b : c) and null-coalescing (x ?? y) operators in assignments/return statements.
+✘ AVOID placing throw expressions on the middle slot of a conditional operator.
+✘ DO NOT place throw expressions inside a function's parameter list.
