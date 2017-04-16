@@ -1,48 +1,4 @@
-# Documentation
-
-## General
-
-* Include a `README.md` file at the root of the project that includes the following information:
-  * Dependencies
-  * Basic configuration
-  * Basic command line
-  * Links to other documentation
-* Include a `LICENSE` file at the root of the project that describes licensing restrictions
-* Include conceptual documentation for each concept/component to provide an overview and examples of how to use the product.
-* Document members and types with XML documentation to enhance code-completion
-
-## Members and Types
-
-* Document public and protected elements.
-* Do not document private or internal members. Naming and method-size rules mean these will document themselves.
-* Document in English with US-English spelling and grammar.
-* Prefer full sentences or clauses; do not use lists of keywords or short phrases.
-* Include references to important members from class documentation.
-* Stay consistent when documenting similar members (e.g. properties); it’s ok to repeat yourself or to use the same exact structure for all members (see below for examples) as long as the documentation is useful for that member.
-* Use the prepositional possessive for code elements.
-* Do not write "`<paramref name="prop">`’s value"; write "the value of `<paramref name="prop">`" instead.
-
-## Dependencies
-
-* Do not add `using` declarations or assembly references to resolve documentation references.
-* Documentation should not introduce dependencies.
-* Consider moving longer documentation out of the code and into higher-level conceptual documentation.
-* Otherwise, include the required namespace in the documentation reference itself.
-
-## XML Tags
-
-* An API should document itself. Code documentation can sometimes be very obvious and simple. This indicates to the caller that it really _is_ that simple.
-* Use a `<remarks>` section to indicate usage and to link to related members. It’s sometimes good to include references to other types or methods in descriptive sentences in addition to listing them in the `<seealso>` section.
-* Use `<c>` tags for the keywords `null`, `false` and `true`.
-* Use `<see>` tags to refer to properties, methods and classes.
-* Use `<paramref>` and `<typeparamref>` tags to refer to method parameters.
-* Use the `<inheritdoc/>` tag for method overrides or interface implementations.
-* Use the `<include>` tag to include larger blocks of documentation (e.g. large `<remarks>` or `<example>` sections).
-* Format  block tags onto separate lines. E.g. `<summary>`, `<param>`, `<remarks>` and `<returns>`
-
-## Tool Support
-
-* Do not leave generated documentation unchanged.
+# XML Documentation Examples
 
 ## Classes
 
@@ -72,6 +28,7 @@
 ## Methods
 
 * Document parameters in declaration order.
+* Do not document exceptions that are bugs (e.g. `ArgumentNullException`).
 * Refer to the first parameter as "given"; subsequent parameter references do not need to be qualified. For example,
   ```csharp
   /// Gets the value of the given <paramref name="prop"/> in <paramref name="obj">.`
@@ -89,7 +46,7 @@
   /// The values with which to seed the random generator; cannot be <c>null</c>.
   /// </param>
   void FillWithRandomText(IRandomGenerator generator, string seedValues);
-* For methods that return a Boolean value, use the following form:
+* For methods that return a `bool`, use the following form:
   ```csharp
   /// <summary>
   /// Gets a value indicating whether the value of the given <paramref name="prop"/>
@@ -106,7 +63,6 @@
   /// </returns>
   bool ValueModified(object obj, IMetaProperty prop);
   ```
-* Do not document exceptions that are bugs (e.g. `ArgumentNullException`).
 * Exceptions should begin with “If…” as shown in the example below:
   ```csharp
   /// <summary>
@@ -129,11 +85,10 @@
 
 ## Constructors
 
-* Though you can use inherited documentation for constructors, this is not recommended; instead, you should be as specific as possible on the parameter documentation.
-* Where possible, the documentation for a parameter should consist only of indicating to which property the parameter is assigned and the acceptable inputs (as with other methods). Let the linked property documentation describe the effect of the parameter; this accounts for many constructor parameters.
-* Parameters assigned to read-only properties should use the form "Initializes the value of ..." and parameters assigned to read/write properties should use the form: "Sets the initial value of ..."
-
-The example below shows a class with constructor and properties documented according to the rules given:
+* Do not use `<inheritdoc/>` for constructors.
+* Documentation for parameters that initialize `public` or `protected` properties should reference that property instead of repeating documentation for properties in the documentation for the initializing parameter in the constructor.
+* Parameters assigned to read-only properties should use the form "Initializes the value of ..."
+* Parameters assigned to read/write properties should use the form "Sets the initial value of ..."
 
 ```csharp
 class SortOrderAspect
@@ -199,7 +154,7 @@ class SortOrderAspect
   bool Enabled { get; }
   ```
 
-### Full Example
+## Full Example
 
 The example below includes many of the best practices outlined in the previous sections. It includes `<seealso>`, `<exception>` and several `<paramref>` tags as well as clearly stating what it does with those parameters and their acceptable values. Finally, it includes extra detail in the `<remarks>` section instead of the `<summary>`.
 

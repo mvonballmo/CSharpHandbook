@@ -1,37 +1,43 @@
 # Naming
 
-These naming rules are designed for use with C#. While some general rules can be applied to all languages, some are specific to C#.
+## Table of Contents
 
-## Valid Characters
+*
+
+## Characters
 
 * Names contain only alphabetic characters.
-* The underscore is allowed only as a leading character for fields.
+* The underscore is allowed only as a leading character for `private` fields.
 * Numbers are allowed only for local variables in tests and then only as a suffix.
 * Do not use the @-symbol
 
-## General Rules
+## Words
 
-* Names should be as **short** as possible without losing meaning.
-* Names are in **US-English** (e.g. “color” rather than “colour”).
+* Use **US-English** (e.g. “color” rather than “colour”).
+* Use **English grammar** (e.g. use `ImportableDatabase` instead of `DatabaseImportable`).
 * Use only **standard abbreviations** (e.g. “XML” or “SQL”).
-* Use **whole words** or stick to accepted short forms (e.g. you may use `max` for `maximum` but prefer the suffix `Count` to the prefix `num`).
 * Use **correct capitalization**. If a word is not hyphenated, then it does not need a capital letter in the camel- or Pascal-cased form. For example, “metadata” is written as `Metadata` in Pascal-case, not `MetaData`.
 * Use **number names** instead of numbers (e.g. `partTwo` instead of `part2`).
 * Do not use Hungarian notation or any other prefixing notation to "group" types or members.
-* Names conform to **English grammar** (e.g. use `ImportableDatabase` instead of `DatabaseImportable`).
-* Communicate proper intent: the property name `UpdatesAutomatically` is better than `AutoUpdate`.
-* Names reflect semantics, not storage details; prefer `InterestRate` to `DecimalRate`.
+* Use **whole words** or stick to accepted short forms (e.g. you may use `max` for `maximum` but prefer the suffix `Count` to the prefix `num`).
 
-## Capitalization
+## Semantics
+
+* A name must be semantically **meaningful** in its **scope**.
+* A name should be as **short** as possible.
+* A name communicates **intent**; prefer `UpdatesAutomatically` to `AutoUpdate`.
+* A name reflects **semantics**, not storage details; prefer `InterestRate` to `DecimalRate`.
+
+## Case
 
 The following table lists the capitalization and naming rules for different language elements.
 
-* Pascal-case capitalizes every individual word within an name, including the first one.
-* Camel-case capitalizes all but the first word in an name.
+* Pascal-case capitalizes every word in a name.
+* Camel-case capitalizes all but the first word in a name.
 * **Acronyms** longer than two letters are in Pascal-case (e.g. `Xml` or `Sql`). Acronyms at the beginning of a camel-case name are always all lowercase (e.g. `html`).
 
 Language Element | Case
---- | --- |
+--- | ---
 Class | Pascal
 Interface | Pascal w/leading `I`
 Struct | Pascal
@@ -39,14 +45,18 @@ Enumerated type | Pascal
 Enumerated element | Pascal
 Properties | Pascal
 Generic parameters | Pascal
-Public or protected readonly or const field | Pascal
+Public or protected `readonly` or `const` field | Pascal
 Private field | Camel with leading underscore [\[1\]](#footnote_1)
 Method argument | Camel
 Local variable | Camel
-Attributes | Pascal with “Attribute” suffix
-Exceptions | Pascal with “Exception” suffix
-Event handlers | Pascal with “EventHandler” suffix
+Attributes | Pascal with `Attribute` suffix
+Exceptions | Pascal with `Exception` suffix
+Event handlers | Pascal with `EventHandler` suffix
 
+### Collision and Matching
+
+* An element may not have the same name as its containing element (e.g. class `Expressions` in namespace `Expressions` or property `Company` on class `Company`).
+* The most appropriate name for a property is often the same as its type (e.g. for `enum` properties).
 * Names differing only by case may be defined within the same scope only for different language elements (e.g. a local variable and a property or a method parameter and a local parameter).
   ```csharp
   public void UpdateLength(int newLength, bool refreshViews)
@@ -56,11 +66,6 @@ Event handlers | Pascal with “EventHandler” suffix
   }
   ```
 
-
-### Collision and Matching
-
-* An element may not have the same name as its containing element (e.g. class `Expressions` in namespace `Expressions` or property `Company` on class `Company`).
-* The most appropriate name for a property is often the same as its type (e.g. for `enum` properties).
 
 ## The Art of Choosing a Name
 

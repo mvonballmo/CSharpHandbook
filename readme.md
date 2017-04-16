@@ -4,6 +4,14 @@ The focus of this document is on providing a reference for writing C#. It includ
 
 Many of the best practices and conventions apply equally well to other languages.
 
+## Table of Contents
+
+1. [Naming](naming/)
+1. [Formatting](formatting.md)
+1. [Documentation](documentation/)
+1. [Best Practices](practices/)
+    1. [Casting](practices/casting.md)
+
 ## History
 
 This document started out as a Microsoft Word document and was originally published at CodePlex in 2008 by [Encodo Systems AG](http://encodo.com). It has been updated a few times over the years, but not nearly often enough to keep pace with changes.
@@ -31,8 +39,10 @@ It is also a complete overhaul in both content and structure to provide maximum 
 
 ### Referenced Documents
 
+Most of the following documents were more heavily used in prior versions. References have been included for completeness.
+
 | Date | Document | Version
-| --- | --- | --- | ---
+| --- | --- | ---
 | 20.07.2017 | [Microsoft C# Coding Conventions](https://msdn.microsoft.com/en-us/library/ff926074.aspx) | VS2015
 | 01.04.2017 | [Microsoft Framework Design Guidelines](https://msdn.microsoft.com/en-us/library/ms229042(v=vs.110).aspx) | 4.7
 | 01.07.2011 | [IDesign C# Coding Standards](https://www.scribd.com/document/236016479/IDesign-C-Coding-Standard-2-4) | 2.4
