@@ -1,13 +1,13 @@
 # Casting
 
-1. Use a direct cast if you are sure of the type.
-    ```csharp
-    ((IWeapon)item).Fire();
-    ```
-1. Use the `is`-operator when _testing_ but not _using_ the result of the cast.
-    ```csharp
-    return item is IWeapon;
-    ```
+* Use a direct cast if you are sure of the type.
+  ```csharp
+  ((IWeapon)item).Fire();
+  ```
+* Use the `is`-operator when _testing_ but not _using_ the result of the cast.
+  ```csharp
+  return item is IWeapon;
+  ```
 * To use the result of the cast, use an `is`-expression in C# 7 and higher.
   ```csharp
   if (item == null) { throw new ArgumentNullException(nameof(item)); }

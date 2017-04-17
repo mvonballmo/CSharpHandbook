@@ -1,9 +1,5 @@
 # Naming
 
-## Table of Contents
-
-*
-
 ## Characters
 
 * Names contain only alphabetic characters.
@@ -66,8 +62,26 @@ Event handlers | Pascal with `EventHandler` suffix
   }
   ```
 
+## Grouping
 
-## The Art of Choosing a Name
+* Do not use a “library” prefix for types (e.g. instead of `QnoDatabase`, use a more descriptive name, like `MetaDatabase` or `RelationalDatabase`).
+* You may use a prefix when it's more convenient for disambiguation, as for UI-control libraries. If you do use a prefix, use a whole word (e.g. prefer `Quino` to `Qno`) and apply it consistently.
+* Avoid very generic type names (e.g. `Element`, `Node`, `Message` or `Log`), which collide with types from the framework or other commonly-used libraries. Use a more specific name, if at all possible.
+* If there are multiple types encapsulating similar concepts (but with different implementations, for example), you should use a common suffix to group them. For example, all the expression node types in the Encodo expressions library end in the word Expression.
+
+## Algorithm
+
+### Local Variables and Parameters
+
+A parameter name or local variable should have the same name as the type. It is valid to use shorter forms for longer type names, as long as the context is clear.
+
+IMetaExpressionFactory: can be metaExpressionFactory, expressionFactory or factory.
+
+`f` is not acceptable for parameters, but is OK for a local variable in either a short lambda or method.
+
+The following table presents the method parameter or local variable name you should use for common types in the .NET and Encodo libraries. For other types, try to follow the spirit of the naming convention by choosing complete words or known abbreviations.
+
+## Structure
 
 ### Assemblies
 
@@ -88,7 +102,6 @@ Event handlers | Pascal with `EventHandler` suffix
 * If a generic type is the only type with that name, then do not include the parameter names in the filename. If there is a non-generic type and a generic type with the same name, then the filename should include the generic argument names enclosed in {}. E.g. If the types `Atom` and `Atom<TInput>` both exist, then the filenames should be `Atom.c` and `Atom{TInput}.cs`, respectively.
 * Tests for a file go in `<FileName>Tests.cs` (if there are a lot of tests, they should be split into several files, but always using the form `<Extra><FileName>Tests.cs`) where `Extra` identifies the group of tests found in the file. Tests should be defined in their own assembly to avoid dependencies on unit-testing assemblies. The tests for a class should appear in the same location as the class being tested. That is, the tests for the class `Encodo.Tools.Csv.CsvParser` should be in `Encodo.Testing.Tools.Csv.CsvParser`.
 
-
 ### Namespaces
 
 * The namespace must match the file location in the project. For example, if the project’s root namespace is `Encodo.Parsers`, then the file located at `Csv/CsvParser.cs` should have the namespace `Encodo.Parsers.Csv`.
@@ -97,38 +110,59 @@ Event handlers | Pascal with `EventHandler` suffix
 * If your framework or application encompasses more than one tier, use the same namespace identifiers for similar tasks. For example, common data-access code goes in `Encodo.Data`, but metadata-based data-access code goes in `Encodo.Quino.Data`.
 * Do not use “reserved” namespace names like `System` because these will conflict with standard .NET namespaces and require resolution using the `global::` namespace prefix.
 
-### Interfaces
-
-* Prefix interfaces with the letter “I”.
+## Types
 
 ### Classes
 
 * If a class implements a single interface, it should reflect this by incorporating the interface name into its own (e.g. `MetaList` implements `IList`).
-* Static classes used as toolkits of static functions [\[3\]](#footnote_3) should use the suffix “Tools” and should go in a file ending in “Tools.cs”.
+* Static classes used as toolkits of static functions should use the suffix “Tools”.
 
-### Sequences and lists
+### Interfaces
+
+* Prefix interfaces with the letter “I”.
+
+### Enumerations
+
+* Simple enumerations have singular names, whereas bit-sets  have plural names.
+
+### Generic Parameters
+
+* If a class or method has a single generic parameter, use the letter `T`.
+* If there are two generic parameters and they correspond to a key and a value, then use `K` and `V`.
+* Generic methods on classes with a generic parameter should use `TResult`, where appropriate. The example below shows a generic class with such a method.
+  ```csharp
+  public class ListBookmarkSelection<T> : IBookmarkSelection
+  {
+    public IList<TResult> GetObjects<TResult>()
+    {
+      // Convert list contents from T to TResult
+    }
+  }
+  ```
+* Generic conversion functions should use `TInput` and `TOutput`, respectively.
+  ```csharp
+  public static IList<TOutput> ConvertList<TInput, TOutput>(IList<TInput> input)
+  {
+    // Convert list contents from TInput to TOutput
+  }
+  ```
+* If there are multiple parameters, but no pattern, name the “contained” element `T` (if there is one) and the other parameters something specific starting with the letter T.
+
+### Sequences and Lists
 
 * Prefer the plural form (e.g. `appointments`) for sequences (e.g. `IEnumerable<T>`) and lists or arrays
 * Use the suffix “List” when you want to emphasize that a parameter or property is a list (e.g. `appointmentList`).
 
-### Making groups
-
-* Do not use a “library” prefix for types (e.g. instead of `QnoDatabase`, use a more descriptive name, like `MetaDatabase` or `RelationalDatabase`).
-* You may use a prefix when it's more convenient for disambiguation, as for UI-control libraries. If you do use a prefix, use a whole word (e.g. prefer `Quino` to `Qno`) and apply it consistently.
-* Avoid very generic type names (e.g. `Element`, `Node`, `Message` or `Log`), which collide with types from the framework or other commonly-used libraries. Use a more specific name, if at all possible. [\[2\]](#footnote_2)
-* If there are multiple types encapsulating similar concepts (but with different implementations, for example), you should use a common suffix to group them. For example, all the expression node types in the Encodo expressions library end in the word Expression.
-
+## Members
 
 ### Properties
 
 * Properties should be nouns or adjectives.
 * Prepend “Is” to the name for Boolean properties only if the intent is unclear without it. The next example shows such a case:
-
-```csharp
-public bool Empty { get; }
-public bool IsEmpty { get; }
-```
-
+  ```csharp
+  public bool Empty { get; }
+  public bool IsEmpty { get; }
+  ```
   Even though it’s a property not a method, the first example might still be interpreted as a verb rather than an adjective. The second example adds the verb “Is” to avoid confusion, but both formulations are acceptable.
 * A property’s backing field (if present) must be an underscore followed by the name of the property in camel case.
 * Use common names, like `Item` or `Value`, for accessing the central property of a type.
@@ -178,26 +212,11 @@ public bool IsEmpty { get; }
 * However, if the method also, at some point, makes use of an `IViewContext`, you should make the parameter name more specific, using `dataContext` instead.
 * For copy constructors or equality operators, name the object to be copied or compared `other`.
 
-### Local Variables & Lambda parameters
-Since local variables are limited to a much smaller scope and are not documented, the rules for name-selection are somewhat more relaxed.
+### Lambdas
 
-* Try to use a name from section 5.4.1 – Local Variables and Parameters, if possible.
-* Avoid using `temp` or `i` or `idx` for loop indexes. Use the suffix `Index` together with a descriptive prefix, as in `colIndex` or `itemIndex` or `memberIndex`.
-* Names need only be as specific as the scope requires.
-* The more limited the scope, the more abbreviated the variable may be.
-* Use real words where there is enough space to do so.
-* Use single letters in lambdas where you're trying to save space.
-
-### Return Values
-
-* If a method creates a local variable expressly for the purpose of returning it as the result, that variable should be named `result`.
-  ```csharp
-  object result = this[Fields.Id];
-
-  if (result == null) { return null; }
-
-  return (Int32)result;
-  ```
+* Do not use the highly non-expressive `x` as a parameter name.
+* Instead, use a single-letter variable starting with the first letter of the type or formal parameter.
+* Parameters in a lambda expression should follow the same conventions as for parameters in standard methods.
 
 ### Events
 
@@ -221,34 +240,7 @@ Since local variables are limited to a much smaller scope and are not documented
 * To trigger an event, use `Raise[EventName]`; this method must be `protected` and `virtual` to allow descendants to perform work before and after calling the base method.
 * If you are raising events for changes made to properties, use the pattern `Raise[Property]Changed`.
 
-### Enumerations
-
-* Simple enumerations have singular names, whereas bit-sets  have plural names.
-
-### Generic Parameters
-
-* If a class or method has a single generic parameter, use the letter `T`.
-* If there are two generic parameters and they correspond to a key and a value, then use `K` and `V`.
-* Generic methods on classes with a generic parameter should use `TResult`, where appropriate. The example below shows a generic class with such a method.
-  ```csharp
-  public class ListBookmarkSelection<T> : IBookmarkSelection
-  {
-    public IList<TResult> GetObjects<TResult>()
-    {
-      // Convert list contents from T to TResult
-    }
-  }
-  ```
-* Generic conversion functions should use `TInput` and `TOutput`, respectively.
-  ```csharp
-  public static IList<TOutput> ConvertList<TInput, TOutput>(IList<TInput> input)
-  {
-    // Convert list contents from TInput to TOutput
-  }
-  ```
-* If there are multiple parameters, but no pattern, name the “contained” element `T` (if there is one) and the other parameters something specific starting with the letter T.
-
-### Delegates and Delegate Parameters
+### Delegates
 
 * Use a descriptive verb for delegate names, like the following examples:
   ```csharp
@@ -276,11 +268,28 @@ Since local variables are limited to a much smaller scope and are not documented
   ```
   This practice makes it much easier to determine the expected signature in code-completion as well.
 
-### Lambda Expressions
+## Statements and Expressions
 
-* Do not use the highly non-expressive `x` as a parameter name.
-* Parameters in a lambda expression should follow the same conventions as for parameters in standard methods.
-* Do not make overly-complex lambda expressions; instead, define a method or use a delegate.
+### Local Variables
+
+Since local variables are limited to a much smaller scope and are not documented, the rules for name-selection are somewhat more relaxed.
+
+* Avoid using `temp` or `i` or `idx` for loop indexes. Use the suffix `Index` together with a descriptive prefix, as in `colIndex` or `itemIndex` or `memberIndex`.
+* Names need only be as specific as the scope requires.
+* The more limited the scope, the more abbreviated the variable may be.
+* Use real words where there is enough space to do so.
+* Use single letters in lambdas where you're trying to save space.
+
+### Return Values
+
+* If a method creates a local variable expressly for the purpose of returning it as the result, that variable should be named `result`.
+  ```csharp
+  object result = this[Fields.Id];
+
+  if (result == null) { return null; }
+
+  return (Int32)result;
+  ```
 
 ### Compiler Variables
 
@@ -292,80 +301,3 @@ Since local variables are limited to a much smaller scope and are not documented
         return false;
   #endif
   ```
-
-## Common Names
-
-### Local Variables and Parameters
-
-A parameter name or local variable should have the same name as the type. It is valid to use shorter forms for longer type names, as long as the context is clear.
-
-IMetaExpressionFactory: can be metaExpressionFactory, expressionFactory or factory.
-
-`f` is not acceptable for parameters, but is OK for a local variable in either a short lambda or method.
-
-The following table presents the method parameter or local variable name you should use for common types in the .NET and Encodo libraries. For other types, try to follow the spirit of the naming convention by choosing complete words or known abbreviations.
-
-Type | Parameter & Variables | Variables & Lambda parameters
---- | --- | ---
-Exception | exception
-IMetaBase | metadata
-IMetaModel| model
-IMetaClass | metaClass
-IMetaProperty | property | prop
-IMetaRelation | relation
-ILogger | logger
-IMetaElement | element
-I*Database | db, database
-IQuery | query
-I*Context | context
-I*Handler | handler
-IMessage | msg, message
-IOperator | op, operation
-IExpression | expr, expression
-*Item | item
-*Session | session
-Application | application | app, a
-*EventArgs | args
-*List | list
-*Collection | collection, coll
-*Type | type
-*Column | column, col
-CultureInfo | culture
-Encoding | encoding
-*Bookmark | bookmark
-Appointment | appointment | appt
-
-### User Interface Components
-
-UI Elements should not include a suffix that indicates their control type unless there is another member that already uses that name or there are two controls that would use that name.[\[4\]](#footnote_4) If a suffix must be used, use one from the table below that best matches the control’s type.
-
-UI Element | Suffix | Example
---- | --- | ---
-Menu or toolstrip item | Item | _saveItem
-Menu (context or main) | Menu | _logMenu
-Listview, listbox, etc. | List | _fileList
-Trees | Tree | _folderTree
-Columns | Column | _lastNameColumn
-Grids | Grid | _programsGrid
-Groups | Group | _optionsGroup
-Data Sources | Data | _programsData
-Panels | Panel | _optionsPanel
-Text boxes | Text | _lastNameText
-Labels | Label | _lastNameLabel
-Check boxes | Checkbox | _isEmployeeCheckbox
-Page Control Tabs | Tab | _optionsTab
-Radio Buttons | RadioButton | _salariedRadioButton
-Page Controls | Pages | _preferencesPages
-Dialogs | Dialog | _saveModelDialog
-Image lists | Images | _smallMenuImages
-Generic controls | Control | _someControl
-
-## Footnotes
-
-<a name="footnote_1">[1]</a> This is not CLS-compliant because protected variables in Visual Basic always start with an underscore, so the code could not be re-generated in that language. We’ve chosen not to care.
-
-<a name="footnote_2">[2]</a> Name collisions can be resolved using aliases or simply by using global:: namespace resolution, but this makes working with and reading the code both more difficult. For example, suppose we have made an interface for metadata properties in the `Encodo.Quino.Meta` namespace. The natural name for the interface is `IProperty`, but that’s too common a name, so we should use something like `IMetaProperty` instead. Other metadata interfaces would share this prefix, like `IMetaClass`, `IMetaRelation` and so on.
-
-<a name="footnote_3">[3]</a> Such toolkits are also called “Convenience Methods” and often contain extension methods; see “7.17 – Using Extension Methods” for more information.
-
-<a name="footnote_4">[4]</a> For example, this conflict can arise when you have a list control with a popup menu attached to it.

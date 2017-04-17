@@ -16,16 +16,11 @@ The rule here is to only use inheritance where it makes semantic sense to do so.
 
 ## Interfaces vs. Abstract Classes
 
-Whether or not to use interfaces is a hotly-debated topic. On the one hand, interfaces offer a clean abstraction and “interface” to a library component and, on the other hand, they restrict future upgrades by forcing new methods or properties on existing implementations. In a framework or library, you can safely add members to classes that have descendants in application code without forcing a change in that application code. However, abstract methods—which are necessary for very low-level objects because the implementation can’t be known—run into the same problems as new interface methods. Creating new, virtual methods with no implementation to avoid this problem is strongly frowned upon, as it fails to properly impart the intent of the method. [1](#footnote_1)
+Whether or not to use interfaces is a hotly-debated topic. On the one hand, interfaces offer a clean abstraction and “interface” to a library component and, on the other hand, they restrict future upgrades by forcing new methods or properties on existing implementations. In a framework or library, you can safely add members to classes that have descendants in application code without forcing a change in that application code. However, abstract methods—which are necessary for very low-level objects because the implementation can’t be known—run into the same problems as new interface methods. Creating new, virtual methods with no implementation to avoid this problem is strongly frowned upon, as it fails to properly impart the intent of the method.
 
-Where interfaces can also be very useful is in restricting write-access to certain properties or containers. That is, an interface can be declared with only a getter, but the implementation includes both a getter and setter. This allows an application to set the property when it works with an internal implementation, but to restrict the code receiving the interface to a read-only property. See “7.21 Restricting Access with Interfaces” for more information.
+One exception to this rather strictly enforced rule is for classes that simply cannot be abstract. This will be the case for user-interface components that interact with a visual designer. The Visual Studio designer, for example, requires that all components be non-abstract and include a default constructor in order to be used. In these cases, empty virtual methods that throw a `NotImplementedException` are the only alternative. If you must use such a method, include a comment explaining the reason.
 
-##	Modifying interfaces
-
-* In general, be extremely careful of modifying interfaces that are used by code not under your control (i.e. code that has shipped and been integrated into other codebases).
-* If a change needs to be made, it must be very clearly documented in the release notes for the code and must include tips for implementing/updating the implementation for the interface.
-* For highly sensitive code—i.e. code in an interface that is highly likely to have been consumed by end-user code—you should use the process outlined in “7.29.1 − Safe Obsolescence”.
-* Another solution is to develop a parallel path that consumes a new interface inherited from the existing one.
+Where interfaces can also be very useful is in restricting write-access to certain properties or containers. That is, an interface can be declared with only a getter, but the implementation includes both a getter and setter. This allows an application to set the property when it works with an internal implementation, but to restrict the code receiving the interface to a read-only property.
 
 ## Delegates vs. Interfaces
 
@@ -45,7 +40,7 @@ Use methods instead of properties in the following situations:
 * If the value of the property is not cached internally, but is expensive to calculate, indicate this with a method call instead of a property (properties generally give the impression that they reference information stored with the object).
 * If the result is not idempotent (yields the same result no matter how often it is called), it should be a method.
 * If the property returns a copy of an internal state rather than a direct reference; this is especially significant with array properties, where repeated access is very inefficient.
-* When a getter is not desired, use a method instead of a write-only property.
+* When a getter is not desired, use a method instead of a set-only property.
 
 For all other situations in which both a property and a method are appropriate, properties have the following advantages over methods:
 
@@ -54,7 +49,7 @@ For all other situations in which both a property and a method are appropriate, 
 
 ## Choosing Types
 
-* Use the least-derived possible type for local variables and method parameters; this makes the expected API as explicit and open as possible.
+* Use the least-derived possible type for method parameters; this makes the expected API as explicit and open as possible.
 * Use existing interfaces wherever possible—even when declaring local or member variables. Interfaces should be useful in most instances; otherwise they’ve probably been designed poorly.
       ```c#
       IMessageStore messages = new MessageStore();
@@ -107,8 +102,6 @@ With use-cases in mind, here are some points to consider when building a class.
 * If another assembly needs a type to be public, consider whether that type could not remain internalized if the API were higher-level. Use the Object Browser to examine the public API.
 * To this end, frameworks that are logically split into multiple assemblies can use the `InternalsVisibleTo` attributes to make “friend assemblies” and avoid making elements public. Given three assemblies, `Quino`, `QuinoWinform` and `QuinoWeb` (of which a standard Windows application would include only the first two), the `Quino` assembly can make its internals visible to `QuinoWinform`.
 
-<a name="footnote_1">[1]</a> One exception to this rather strictly enforced rule is for classes that simply cannot be abstract. This will be the case for user-interface components that interact with a visual designer. The Visual Studio designer, for example, requires that all components be non-abstract and include a default constructor in order to be used. In these cases, empty virtual methods that throw a `NotImplementedException` are the only alternative. If you must use such a method, include a comment explaining the reason.
-
 <a name="footnote_2">[2]</a> The spec# project at Microsoft Research provides an integration of Design-By-Contract mechanisms into the C# language; at some point in the future, this may be worthwhile to include.
 
 ## Namespaces
@@ -120,7 +113,7 @@ With use-cases in mind, here are some points to consider when building a class.
 ## Assemblies
 
 * Use a separate assembly to improve decoupling and reduce dependencies.
-* Top-level application assemblies should have as little code as possible. Use class libraries for most logic.
+* Top-level application assemblies should have as little code as possible. Most logic goes in class libraries.
 
 The example below illustrates the projects for a solution called “Calculator” with a _WPF_ application, a web-API application and a console application.
 * `Calculator.Core`

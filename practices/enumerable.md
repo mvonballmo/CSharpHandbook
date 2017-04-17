@@ -1,0 +1,141 @@
+#	IEnumerable<T>
+
+`IEnumerable<T>` sequences are evaluated lazily. ReSharper will warn of multiple enumeration.
+
+## Capturing Unstable Variables/”Access to Modified Closure”
+
+You can accidentally change the value of a captured variable before the sequence is evaluated. Since _ReSharper_ will complain about this behavior even when it does not cause unwanted side-effects, it is important to understand which cases are actually problematic.
+
+```csharp
+var data = new[] { "foo", "bar", "bla" };
+var otherData = new[] { "bla", "blu" };
+var overlapData = new List<string>();
+
+foreach (var d in data)
+{
+  if (otherData.Where(od => od == d).Any())
+  {
+    overlapData.Add(d);
+  }
+}
+
+Assert.That(overlapData.Count, Is.EqualTo(1)); // "bla"
+```
+
+The reference to the variable `d` will be flagged by _ReSharper_ and marked as an _“access to a modified closure”_. This indicates that a variable referenced—or “captured”—by the lambda expression—closure—will have the last value assigned to it rather than the value that was assigned to it when the lambda was created.
+
+In the example above, the lambda is created with the first value in the sequence, but since we only use the lambda once, and then always before the variable has been changed, we don’t have to worry about side-effects. _ReSharper_ can only detect that a variable referenced in a closure is being changed within its scope.
+
+Even though there isn’t a problem in this case, rewrite the `foreach`-statement above as follows to eliminate the _access to modified closure_ warning.
+
+```csharp
+var data = new[] { "foo", "bar", "bla" };
+var otherData = new[] { "bla", "blu" };
+var overlapData = data.Where(d => otherData.Where(od => od == d).Any()).ToList();
+
+Assert.That(overlapData.Count, Is.EqualTo(1)); // "bla"
+```
+
+Finally, use library functionality wherever possible. In this case, we should use `Intersect` to calculate the overlap (intersection).
+
+```csharp
+var data = new[] { "foo", "bar", "bla" };
+var otherData = new[] { "bla", "blu" };
+var overlapData = data.Intersect(otherData).ToList();
+
+Assert.That(overlapData.Count, Is.EqualTo(1)); // "bla"
+```
+
+Remember to be aware of how items are compared. The `Intersects` method above compares using `Equals`, not reference-equality.
+
+The following example does not yield the expected result:
+
+```csharp
+var data = new[] { "foo", "bar", "bla" };
+
+var threshold = 2;
+var twoLetterWords = data.Where(d => d.Length == threshold);
+
+threshold = 3;
+var threeLetterWords = data.Where(d => d.Length == threshold);
+
+Assert.That(twoLetterWords.Count(), Is.EqualTo(0));
+Assert.That(threeLetterWords.Count(), Is.EqualTo(3));
+```
+
+The lambda in `twoLetterWords` _references_ `threshold`, which is then changed before the lambda is evaluated with `Count()`. There is nothing wrong with this code, but the results can be surprising. Use `ToList()` to evaluate the lambda in `twoLetterWords` _before_ the threshold is changed.
+
+```csharp
+var data = new[] { "foo", "bar", "bla" };
+var threshold = 2;
+var twoLetterWords = data.Where(d => d.Length == threshold).ToList();
+
+threshold = 3;
+var threeLetterWords = data.Where(d => d.Length == threshold);
+
+Assert.That(twoLetterWords.Count(), Is.EqualTo(0));
+Assert.That(threeLetterWords.Count(), Is.EqualTo(3));
+```
+
+## Enumeration Run-time Errors
+
+Changing a sequence during enumeration causes a runtime error.
+
+The following code will fail whenever `data` contains an element for which `IsEmpty` returns `true`.
+
+```csharp
+foreach (var d in data.Where(d => d.IsEmpty))
+{
+  data.Remove(d);
+}
+```
+
+To avoid this problem, use an in-memory copy of the sequence instead. A good practice is to use `ToList()` to create the copy and to call it in the `foreach` statement so that it's clear why it's being used.
+
+```csharp
+foreach (var d in data.Where(d => d.IsEmpty).ToList())
+{
+  data.Remove(d);
+}
+```
+
+## More Unexpected Results
+
+Suppose, in the example above, that we also want to know how many elements were empty. Let's start by extracting `emptyElements` to a variable.
+
+```csharp
+var emptyElements = data.Where(d => d.IsEmpty);
+foreach (var d in emptyElements.ToList())
+{
+  data.Remove(d);
+}
+
+return emptyElements.Count();
+```
+
+Since `emptyElements` is evaluated lazily, the call to `Count()` to return the result will evaluate the iterator again, producing a sequence that is now empty—because the `foreach`-statement removed them all from data. The code above will always return zero.
+
+A more critical look at the code above would discover that the `emptyElements` iterator is triggered twice: by the call to `ToList()` and `Count()` (ReSharper will helpfully indicate this with an inspection). Both `ToList()` and `Count()` logically iterate the entire sequence.
+
+To fix the problem, we lift the call to `ToList()` out of the `foreach` statement and into the variable.
+
+```csharp
+var emptyElements = data.Where(d => d.IsEmpty).ToList();
+foreach (var d in emptyElements)
+{
+  data.Remove(d);
+}
+
+return emptyElements.Count;
+```
+
+We can eliminate the `foreach` by directly re-assigning `data`, as shown below.
+
+```csharp
+var dataCount = data.Count;
+var data = data.Where(d => !d.IsEmpty).ToList();
+
+return dataCount – data.Count;
+```
+
+The first algorithm is more efficient when the majority of item in `data` are empty. The second algorithm is more efficient when the majority is non-empty.
