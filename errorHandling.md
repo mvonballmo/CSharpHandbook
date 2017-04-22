@@ -104,7 +104,7 @@ catch (NullReferenceException exception)
   }
   ```
 * Only implement serialization for exceptions if you're going to use it.
-* If an exception must be able to work across application domain and remoting boundaries, then it must be serializable.
+* If an exception must be able to work across network boundaries, then it must be serializable.
 * Do not cause exceptions during the construction of another exception (this sometimes happens when formatting custom messages) as this will subsume the original exception and cause confusion.
 
 ## Throwing Exceptions
@@ -166,21 +166,49 @@ The Try\* pattern is used by the .NET framework. Generally, Try\*-methods accept
 
 ## Error Messages
 
-* Be as specific as possible when throwing exceptions. Let the caller/catcher elide detail as needed.
+### Content
+
+* Use complete sentences that end in a period.
+* Do not use question marks or exclamation points.
+* Be brief.
+* Be specific.
+* Provide information on how to prevent the error in the future.
+
+The following message is too vague and wordy.
+
+```csharp
+"The file that the application was looking for in order to load the configuration could not be loaded from the user folder."
+```
+
+This message leaves a lot of questions open.
+
+* Does the file exist?
+* Is it empty?
+* Is it corrupted?
+* Can the application read it?
+* Where exactly was the application looking?
+
+Instead, use something like the following.
+
+```csharp
+"Permission to read file [~/.appConfig] was denied."
+```
+
+From this message the problem is clear and the user has many clues as to how to address the issue.
+
+### Exceptions
+
+* Log all exceptions.
+* Include technical detail in a separate message in the exception (e.g. stored in the `Data` array with a standard key).
+*
+* Lower-level, developer messages should be logged to sources that are available only to those with permission to view lower-level details.
+* Applications should avoid showing sensitive information to end-users. This applies especially to web applications, which must never show exception traces in production code. The exact message returned by an exception can vary depending on the permission level of the executing code.
 * If data included in a message _could_ be empty, consider wrapping it in braces so that the message is clear even when the data is empty. For example, the following code might produce a confusing error message:
   ```csharp
   var message = $"The following expression {data} could not be parsed.";
   ```
   If `data` is empty, the caller (user or developer) sees only _The following expression could not be parsed._ If the message was instead defined as follows:
   ```csharp
-  var message = $"The following expression {data} could not be parsed.";
+  var message = $"The following expression [{data}] could not be parsed.";
   ```
   Then the caller sees _The following expression [] could not be parsed._ In this case it's more obvious that the expression was empty.
-* The message should include as much information as possible, though it is highly recommended to provide both a longer, low-level message (for logging and debugging) and a shorter, high-level message for presenting to the user.
-* Error messages should describe how the user or developer can avoid the exception.
-* The standards for error messages are the same as for any other text that might be shown to a user; use grammatically correct English (though translations may also be provided).
-* Messages should be complete sentences and end in a period.
-* Do not use question marks or exclamation points.
-* Use the error level or exception type to indicate severity or let the handler of the exception determine what level of urgency to assign.
-* Lower-level, developer messages should be logged to sources that are available only to those with permission to view lower-level details.
-* Applications should avoid showing sensitive information to end-users. This applies especially to web applications, which must never show exception traces in production code. The exact message returned by an exception can vary depending on the permission level of the executing code.

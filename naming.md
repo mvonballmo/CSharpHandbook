@@ -115,7 +115,8 @@ The following table presents the method parameter or local variable name you sho
 ### Classes
 
 * If a class implements a single interface, it should reflect this by incorporating the interface name into its own (e.g. `MetaList` implements `IList`).
-* Static classes used as toolkits of static functions should use the suffix “Tools”.
+* Static classes containing extension methods end in `Extensions`
+* All other static classes should use the suffix `Tools`.
 
 ### Interfaces
 
@@ -168,7 +169,7 @@ The following table presents the method parameter or local variable name you sho
 * Use common names, like `Item` or `Value`, for accessing the central property of a type.
 * Do not include type information in property names. For example, for a property of type `IMetaRelation`, use the name Relation instead of the name `MetaRelation`.
 * Make the identifier as short as possible without losing information. For example, if a class named `IViewContext` has a property of type `IViewContextHandler`, that property should be called `Handler`.
-* If there are two properties that could be shortened in this way, then neither of them should be. If the class in the example above has another property of type `IEventListHandler`, then the properties should be named something like `ViewContextHandler` and `EventListhandler`, respectively.
+* If there are two properties that could be shortened in this way, then neither of them should be. If the class in the example above has another property of type `IEventListHandler`, then the properties should be named something like `ViewContextHandler` and `EventListHandler`, respectively.
 * Avoid repeating information in a class member that is already in the class name. Suppose, there is an interface named `IMessages`; instances of this interface are typically named messages. That interface should not have a property named `Messages` because that would result in calls to `messages.Messages.Count`, which is redundant and not very readable. Instead, name the property something more semantically relevant, like `All`, so the call would read `messages.All.Count`.
 
 ### Methods
@@ -177,22 +178,21 @@ The following table presents the method parameter or local variable name you sho
 * Method names should not repeat information from the enclosing type. For example, an interface named `IMessages` should not have a method named `LogMessage`; instead name the method `Log`.
 * State what a method does; do not describe the parameters (let code-completion and the signature do that for you).
 * Methods that return values should indicate this in their name, like `GetList()`, `GetItem()` or `CreateDefaultDatabase()`. Though there is garbage collection in C#, you should still use `Get` to indicate retrieval of a local value and `Create` to indicate a factory method, which always creates a new reference. For example, instead of writing:
+  ```csharp
+  public IDataList<GenericObject> GetList(IMetaClass cls)
+  {
+    return ViewApplication.Application.CreateContext<GenericObject>(cls);
+  }
+  ```
 
-      ```csharp
-      public IDataList<GenericObject> GetList(IMetaClass cls)
-      {
-        return ViewApplication.Application.CreateContext<GenericObject>(cls);
-      }
-      ```
+You should write:
 
-    You should write:
-
-      ```csharp
-      public IDataList<GenericObject> CreateList(IMetaClass cls)
-      {
-        return ViewApplication.Application.CreateContext<GenericObject>(cls);
-      }
-      ```
+  ```csharp
+  public IDataList<GenericObject> CreateList(IMetaClass cls)
+  {
+    return ViewApplication.Application.CreateContext<GenericObject>(cls);
+  }
+  ```
 * Avoid defining everything as a noun or a manager. Prefer names that are logically relevant, like `Missile.Launch()` rather than `MissileLauncher.Execute(missile)`.
 * Methods that set a single property value should begin with the verb `Set`.
 * The most generalized version of a method name should be reserved for the method that the framework wishes to encourage or that is used most often. An example from [6] is reproduced below:
@@ -208,7 +208,7 @@ The following table presents the method parameter or local variable name you sho
 
 * Prefer whole words instead of abbreviations (use `index` instead of `idx`).
 * Parameter names should be based on their intended use or purpose rather than their type (unless the type indicates the purpose adequately).
-* Do not simply repeat the type for the parameter name; use a name that is as short as possible, but doesn’t lose meaning. (E.g. a parameter of type `IDataContext` should be called `context` instead of `dataContext`.)
+* Do not simply repeat the type for the parameter name; use a name that is as short as possible, but doesn't lose meaning. (E.g. a parameter of type `IDataContext` should be called `context` instead of `dataContext`.)
 * However, if the method also, at some point, makes use of an `IViewContext`, you should make the parameter name more specific, using `dataContext` instead.
 * For copy constructors or equality operators, name the object to be copied or compared `other`.
 

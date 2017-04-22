@@ -23,7 +23,7 @@
 * Avoid using destructors because they incur a performance penalty in the garbage collector.
 * Do not access other object references inside the destructor as those objects may already have been garbage-collected (there is no guaranteed order-of-destruction in the IL or .NET runtime).
 
-## Example
+## Best Practices
 
 The following class expects the caller to use a non-standard pattern to avoid holding open a file handle.
 

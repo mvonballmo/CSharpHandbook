@@ -1,8 +1,56 @@
-#	IEnumerable<T>
+# Safe Programming
+
+* Use static typing wherever possible.
+
+## Be Functional
+
+* Make data immutable wherever possible.
+* Make methods pure wherever possible.
+
+## Avoid `null` references
+
+* Make references non-nullable wherever possible.
+* Use the `[NotNull]` attribute for parameters, fields and results. Enforce it with a runtime check.
+* Always test parameters, local variables and fields that can be `null`.
+
+Instead of allowing `null` for a parameter, avoid null-checks with a null implementation.
+
+```csharp
+interface ILogger
+{
+  bool Log(string message);
+}
+
+class NullLogger : ILogger
+{
+  void Log(string message)
+  {
+    // NOP
+  }
+}
+```
+
+## Local variables
+
+* Do not re-use local variable names, even though the scoping rules are well-defined and allow it. This prevents surprising effects when the variable in the inner scope is removed and the code continues to compile because the variable in the outer scope is still valid.
+* Do not modify a variable with a prefix or suffix operator more than once in an expression. The following statement is not allowed:
+  ```csharp
+  items[propIndex++] = ++propIndex;
+  ```
+
+## Side Effects
+
+A side effect is a change in an object as a result of reading a property or calling a method that causes the result of the property or method to be different when called again.
+
+* Prefer pure methods.
+* Void methods have side effects by definition.
+* Writing a property must cause a side effect.
+* Reading a property should not cause a side effect. An exception is lazy-initialization to cache the result.
+* Avoid writing methods that return results _and_ cause side effects. An exception is lazy-initialization to cache the result.
+
+## ”Access to Modified Closure”
 
 `IEnumerable<T>` sequences are evaluated lazily. ReSharper will warn of multiple enumeration.
-
-## Capturing Unstable Variables/”Access to Modified Closure”
 
 You can accidentally change the value of a captured variable before the sequence is evaluated. Since _ReSharper_ will complain about this behavior even when it does not cause unwanted side-effects, it is important to understand which cases are actually problematic.
 
@@ -77,7 +125,7 @@ Assert.That(twoLetterWords.Count(), Is.EqualTo(0));
 Assert.That(threeLetterWords.Count(), Is.EqualTo(3));
 ```
 
-## Enumeration Run-time Errors
+## "Collection was modified; enumeration operation may not execute."
 
 Changing a sequence during enumeration causes a runtime error.
 
@@ -99,7 +147,7 @@ foreach (var d in data.Where(d => d.IsEmpty).ToList())
 }
 ```
 
-## More Unexpected Results
+## "Possible multiple enumeration of IEnumerable"
 
 Suppose, in the example above, that we also want to know how many elements were empty. Let's start by extracting `emptyElements` to a variable.
 

@@ -20,9 +20,20 @@
 
 ### Namespaces
 
+#### Referencing
+
 * Do not use the global namespace.
 * Avoid fully-qualified type names; use the `using` statement instead.
-* If the IDE inserts a fully-qualified type name in your code, you should fix it. If the unadorned name conflicts with other already-included namespaces, make an alias for the class with a `using` clause.
+* Use aliases to resolve ambiguities.
+
+### Defining
+
+* Put abstract/high-level types in outer namespaces (e.g. `Encodo.Quino.Data`).
+* Put concrete types in inner ones (e.g. `Encodo.Quino.Data.Ado`).
+* Group types in specific namespaces.
+* Avoid deep hierarchies, as they are more difficult to browse and understand.
+* For general-use types, it's OK to use “Utilities”, “Core” or “General”.
+* Refactor types into new namespaces if a clear presents itself.
 
 ## Types
 
@@ -334,7 +345,7 @@ Instead, you should take the call LogIn() out of the setter for Password and mak
 ```csharp
 var system = new SecuritySystem()
 {
-  Password = "knockknock";
+  Password = "knock knock";
   UserName = "Encodo";
 }
 system.LogIn();
@@ -446,11 +457,22 @@ In this case, Password can be set before the UserName without causing any proble
   Use a `Do` or `Internal` prefix for these methods.
 * Wrap multiple parameters in an "arguments" class to avoid changing the signature when more data is needed in future versions.
 
+### `new` Properties
+
+* Do not use the `new` keyword to force overrides; use `override` instead or restructure the code to avoid it.
+
 ### Event Handlers
+
+Be aware of the following when raising events.
+
+* Event handlers can affect performance.
+* Event handlers can change the calling object.
+* Event handlers can throw exceptions.
+* Event handlers are not guaranteed to run in the calling thread.
 
 #### Alternatives
 
-* Do not use event handlers other than in legacy code (e.g. Winforms)
+* Do not use event handlers other than in legacy code (e.g. Winform)
 * For user interfaces, use the MVVM pattern instead
 * For back-end objects, use messaging or event-aggregator patterns
 
@@ -465,6 +487,66 @@ In this case, Password can be set before the UserName without causing any proble
 * Use `EventArgs` as the base class for custom arguments.
 * Use `CancelEventArgs` as the base class if you need to be able to cancel an event.
 * Custom arguments should include only properties, but no logic.
+
+#### Race conditions
+
+To avoid null-reference exceptions, get a reference to the handler in a local variable before checking it and calling it. The so-called "elvis" operator in C# 6 and higher is recommended.
+
+```csharp
+protected virtual void RaiseMessageDispatched()
+{
+  MessageDispatched?.(this, EventArgs.Empty);
+}
+```
+
+For C# 5 and lower, use:
+
+```csharp
+protected virtual void RaiseMessageDispatched()
+{
+  EventHandler handler = MessageDispatched;
+  if (handler != null)
+  {
+    handler(this, EventArgs.Empty);
+  }
+}
+```
+
+The following code is an example of a simple event handler and receiver.
+
+```csharp
+public class Safe
+{
+  public event EventHandler Locked;
+
+  public void Lock()
+  {
+    // Perform work
+
+    RaiseLocked(EventArgs.Empty);
+  }
+
+  protected virtual void RaiseLocked(EventArgs args)
+  {
+    Locked?.(this, args);
+  }
+}
+
+public static class StoreManager
+{
+  private static void SendMailAboutSafe(object sender, EventArgs args)
+  {
+    // Respond to the event
+  }
+
+  public static void TestSafe()
+  {
+    Safe safe = new Safe();
+    safe.Locked += SendMailAboutSafe;
+    safe.Lock();
+  }
+}
+```
 
 ### Operators
 
@@ -546,7 +628,7 @@ In this case, Password can be set before the UserName without causing any proble
   }
   ```
 
-### Switch Statements
+### `switch` Statements
 
 * Use `throw new UnexpectedEnumException(value)` in the `default` branch. This is more semantically correct than `InvalidEnumArgumentException`, which does not allow you to indicate the unexpected value _and_ erroneously suggests that the value was invalid.
 * The following code is correct:
@@ -565,6 +647,125 @@ In this case, Password can be set before the UserName without causing any proble
   ```
 * The `default` label must always be the last label in the statement. In C# 7, the default label is always interpreted last anyway.
 
+### `continue` Statements
+
+* Do not use `continue`.
+* The following example is not allowed.
+  ```csharp
+  foreach (var search in searches)
+  {
+    if (!search.Path.Contains("CN="))
+    {
+      continue;
+    }
+
+    // Work with valid searches
+  }
+  ```
+  Instead, use a condition to filter elements.
+  ```csharp
+  foreach (var search in searches)
+  {
+    if (search.Path.Contains("CN="))
+    {
+      // Work with valid searches
+    }
+  }
+  ```
+  Even better, use `Where()` to filter elements.
+  ```csharp
+  foreach (var search in searches.Where(s => s.Path.Contains("CN=")))
+  {
+    // Work with valid searches
+  }
+  ```
+
+### `return` Statements
+
+* Prefer multiple return statements to local variables and nesting.
+  ```csharp
+  if (specialTaxRateApplies)
+  {
+    return CalculateSpecialTaxRate();
+  }
+
+  return CalculateRegularTaxRate();
+  ```
+* Compose smaller methods to avoid local variables for return values. For example, the following method uses a local variable rather than multiple returns.
+  ```csharp
+  bool result;
+
+  if (SomeConditionHolds())
+  {
+    PerformOperationsForSomeCondition();
+
+    result = false;
+  }
+  else
+  {
+    PerformOtherOperations();
+
+    if (SomeOtherConditionHolds())
+    {
+      PerformOperationsForOtherCondition();
+
+      result = false;
+    }
+    else
+    {
+      PerformFallbackOperations();
+
+      result = true;
+    }
+  }
+
+  return result;
+  ```
+  This method can be rewritten to return the value instead.
+  ```csharp
+  if (SomeConditionHolds())
+  {
+    PerformOperationsForSomeCondition();
+
+    return false;
+  }
+
+  PerformOtherOperations();
+
+  if (SomeOtherConditionHolds())
+  {
+    PerformOperationsForOtherCondition();
+
+    return false;
+  }
+
+  PerformFallbackOperations();
+
+  return true;
+  ```
+
+* The only code that may follow the last `return` statement is the body of an exception handler.
+  ```csharp
+  try
+  {
+    // Perform operations
+
+    return true;
+  }
+  catch (Exception exception)
+  {
+    throw new DirectoryAuthenticatorException(exception);
+  }
+  ```
+
+### `goto` Statements
+
+* Do not use `goto`.
+
+### `unsafe` Blocks
+
+* Do not use `unsafe`.
+
 ### Ternary and Coalescing Operators
 
 * Use these operators for simple expressions and results.
@@ -574,8 +775,63 @@ In this case, Password can be set before the UserName without causing any proble
 
 * Do not make overly-complex lambda expressions; instead, define a method or use a delegate.
 
+### Casting
+
+* Use a direct cast if you are sure of the type.
+  ```csharp
+  ((IWeapon)item).Fire();
+  ```
+* Use the `is`-operator when _testing_ but not _using_ the result of the cast.
+  ```csharp
+  return item is IWeapon;
+  ```
+* To use the result of the cast, use an `is`-expression in C# 7 and higher.
+  ```csharp
+  if (item == null) { throw new ArgumentNullException(nameof(item)); }
+
+  if (item is IWeapon weapon)
+  {
+    return weapon.Fire();
+  }
+
+  return NullTurn.Default;
+   ```
+* Use a `switch` statement to match more than one or two patterns. Keep the argument precondition separate (even though it _could_ be the penultimate `case`).
+  ```csharp
+  if (item == null) { throw new ArgumentNullException(nameof(item)); }
+
+  switch (item)
+  {
+    case IWeapon weapon:
+      return weapon.Fire();
+    case IMagic magic:
+      return magic.Cast();
+    default:
+      return NullTurn.Default;
+  }
+  ```
+* In C# 6 and lower, use the `as`-operator.
+  ```csharp
+  if (item == null) { throw new ArgumentNullException(nameof(item)); }
+
+  var weapon = item as IWeapon;
+  if (weapon != null)
+  {
+    return weapon.Fire();
+  }
+
+  var magic = item as IMagic;
+  if (magic != null)
+  {
+    return magic.Cast();
+  }
+
+  return NullTurn.Default;
+  ```
+
 ### Compiler Variables
 
+* Avoid using compiler variables.
 * Avoid using `#define` in the code; use a compiler define in the project settings instead.
 * Avoid suppressing compiler warnings.
 
@@ -617,3 +873,50 @@ This approach has the following advantages:
 * The compiler checks all code paths instead of just the one satisfying the current options; this avoids unknowingly retaining incompatible code in a library or application.
 * Code formatting and indenting is not broken up by (possibly overlapping) compile conditions; the name `EncodoCompilerOptions` makes the connection to the compiler obvious enough.
 * The compiler option is referenced only once, avoiding situations in which some code uses one compiler option (e.g. `ENCODO_DEVELOPER`) and other code uses another, misspelled option (e.g. `ENCODE_DEVELOPER`).
+
+### Comments
+
+#### Styles
+
+* Use the single-line comment style—`//`—to indicate a comment.
+* Use four slashes —`////`—to indicate a single line of code that has been temporarily commented.
+* Use the multi-line comment style—`/*` … `*/`—to indicate a commented-out block of code. Do not push these comments to the master branch.
+* Consider using a compiler variable to define a non-compiling block of code; this practice avoids misusing a comment.
+  ```csharp
+  #if FALSE
+        // commented code block
+  #endif
+  ```
+* Use the single-line comment style with `TODO` to indicate an issue that must be addressed. Before a check-in, these issues must either be addressed or documented in the issue tracker, adding the URL of the issue to the TODO as follows:
+  ```csharp
+  // TODO http://issue-tracker.encodo.com/?id=5647: Title of the issue in the issue tracker
+  ```
+
+#### Placement
+
+* Longer comments should always precede the line being commented. Separate multi-line comments with an additional newline before the code.
+* Short comments may appear to the right of the code being commented, but only for lines ending in semicolon (i.e. marking the end of a statement). For example:
+  ```csharp
+  int Granularity = Size / 5; // More than 50% is not valid!
+  ```
+* Comments on the same line as code should _never_ be wrapped to multiple lines.
+
+#### Use Cases
+
+* Use comments to explain algorithms or tricky bits that aren't immediately obvious from a quick read.
+* Use comments to indicate where a hard-won bug-fix was added; if possible, include a reference to a URL in an issue tracker.
+* Use comments to indicate assumptions not already evident from assertions or thrown exceptions.
+* Comments are in US-English; prefer a short style that gets right to the point.
+* A comment need not be a full, grammatically-correct sentence. For example, the following comment is too long
+  ```csharp
+  // Using a granularity that is more than 50% of the size is not valid!
+  int Granularity = Size / 5;
+  ```
+  Instead, you should stick to the essentials so that the warning is immediately clear:
+  ```csharp
+  int Granularity = Size / 5; // More than 50% is not valid!
+  ```
+* Comments should not explain the obvious. In the following example, the comment is superfluous.
+  ```csharp
+  public const int Granularity = Size / 5; // granularity is 20% of size
+  ```

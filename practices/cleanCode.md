@@ -12,7 +12,7 @@ If you do create an abstraction, make sure that there are tests which run agains
 
 ## Inheritance vs. Helpers
 
-The rule here is to only use inheritance where it makes semantic sense to do so. If two classes could share code because they perform similar tasks, but aren’t really related, do not give them a common ancestor just to avoid repeating yourself. Extract the shared code into a helper class and use that class from both implementations. A helper class can be `static`, but may also be an instance.
+The rule here is to only use inheritance where it makes semantic sense to do so. If two classes could share code because they perform similar tasks, but aren't really related, do not give them a common ancestor just to avoid repeating yourself. Extract the shared code into a helper class and use that class from both implementations. Prefer composition of instances over `static` helpers.
 
 ## Interfaces vs. Abstract Classes
 
@@ -22,9 +22,9 @@ One exception to this rather strictly enforced rule is for classes that simply c
 
 Where interfaces can also be very useful is in restricting write-access to certain properties or containers. That is, an interface can be declared with only a getter, but the implementation includes both a getter and setter. This allows an application to set the property when it works with an internal implementation, but to restrict the code receiving the interface to a read-only property.
 
-## Delegates vs. Interfaces
+## Callbacks vs. Interfaces
 
-Both delegates and interfaces can be used to connect components in a loosely-coupled way. A delegate is more loosely-coupled than an interface because it specifies the absolute minimum amount of information needed in order to interoperate whereas an interface forces the implementing component to satisfy a set of clearly-defined functionality.
+Both callbacks and interfaces can be used to connect components in a loosely-coupled way. A delegate is more loosely-coupled than an interface because it specifies the absolute minimum amount of information needed in order to inter-operate whereas an interface forces the implementing component to satisfy a set of clearly-defined functionality.
 
 If the bridge between two components is truly that of an event sink communicating with an event listener, then you should use event handlers and delegates to communicate. However, if you start to have many such delegate connections between two components, you’ll want to improve clarity by defining an interface to more completely describe this relationship.
 
@@ -84,7 +84,7 @@ The point is that any element that is exposed to other code imposes a maintenanc
 
 By nature, C# is more closed in this regard because classes are internal and methods are non-virtual by default. This makes for APIs that require less maintenance but are also less open to other coders. This can be a very frustrating experience for those coders when they inherit from these classes only to find that misbehaving methods cannot be overridden, vital functionality is hidden inside private or virtual methods or classes are sealed so as to prevent inheritance entirely.
 
-Very often, this leads to code duplication as entire swaths of code are copied via reverse-engineering just in order to apply a minor tweak. This is the case currently when working with the Silverlight framework from Microsoft where many classes are sealed and many methods are internal or private and very little of the API can be overridden.
+Very often, this leads to code duplication as entire swaths of code are copied via reverse-engineering just in order to apply a minor tweak. A historical case is the Silverlight framework from Microsoft where many classes are sealed and many methods are internal or private and very little of the API can be overridden.
 
 Naturally, it would be nice to avoid frustrating other coders in this way, but making everything public or protected and virtual is also not the solution. Such blanket approaches fail to guide users of your API sufficiently. It is up to you to find a happy medium, exposing exactly the functionality that any user might need: no more, no less. Naturally, this will force you to actually think about the purpose of the class that you are writing and consider the use-cases for it.
 
@@ -104,12 +104,6 @@ With use-cases in mind, here are some points to consider when building a class.
 
 <a name="footnote_2">[2]</a> The spec# project at Microsoft Research provides an integration of Design-By-Contract mechanisms into the C# language; at some point in the future, this may be worthwhile to include.
 
-## Namespaces
-
-* Nesting depth is inversely related to abstraction. Declare high-level abstractions in the outer layers (e.g. `Encodo.Quino.Data`) and concrete types in inner layers (e.g. `Encodo.Quino.Data.Ado`).
-* The namespace hierarchy should only be deep enough to reflect the actual complexity. Deep hierarchies are more  difficult to browse and understand.
-* Avoid making too many namespaces; instead, use catch-all namespace suffixes, like “Utilities”, “Core” or “General” until it is clearer whether a class or group of classes warrant their own namespace. Refactoring is your friend here.
-
 ## Assemblies
 
 * Use a separate assembly to improve decoupling and reduce dependencies.
@@ -123,4 +117,104 @@ The example below illustrates the projects for a solution called “Calculator�
 * `Calculator.Wpf`
 * `Calculator.Console`
 
-The first three define libraries of functionality that is used by the next four applications. The server and console only use the `Calculator.Core` library whereas the _Winforms_ and _WPF_ applications use their respective libraries. Separating the renderer-dependent code into a separate library makes it much easier to add another application using the same renderer but performing a slightly different task. Only highly application-dependent code should be defined directly in an application project.
+The first three define libraries of functionality that is used by the next four applications. The server and console only use the `Calculator.Core` library whereas the _Winform_ and _WPF_ applications use their respective libraries. Separating the renderer-dependent code into a separate library makes it much easier to add another application using the same renderer but performing a slightly different task. Only highly application-dependent code should be defined directly in an application project.
+
+## Use Code, not Comments
+
+Good variable and method names go a long way to making comments unnecessary.
+
+### Convert to Methods
+
+Replace comments with private methods with descriptive names. For example, the following code is commented, but a bit wordy.
+
+```csharp
+public void MethodOne()
+{
+  // Collect and aggregate results
+  var projections = new List<Result>();
+  foreach (var p in OriginalProjections)
+  {
+    // Do a bunch of stuff with p
+    projections.Add(new Projection(p, i))
+  }
+
+  // Format the projections into a text report
+  var lines = new List<string>();
+  foreach (var projection in projections)
+  {
+    var line = string.Format($"Some text with a {projection}");
+
+    // Work with the line
+
+    lines.Add(line);
+  }
+
+  // Save the lines to file
+  File.WriteAllLines(OutputPath, lines);
+}
+```
+
+Instead, use methods to achieve the same clarity without comments. At the same time, we make use of better types (`IEnumerable<T>`) and constructs (`Select()`, `NotNull`) to streamline and improve the code even more.
+
+```csharp
+public void MethodOne()
+{
+  var projections = CalculateFinalProjections();
+  var lines = CreateReport(projections);
+
+  StoreReport(lines);
+}
+
+[NotNull]
+private IEnumerable<Projection> CalculateFinalProjections()
+{
+  return OriginalProjections.Select(CreateFinalProjection);
+}
+
+[NotNull]
+private Projection CreateFinalProjection([NotNull] Projection p)
+{
+  if (p == null) { throw new ArgumentNullException(nameof(p)); }
+
+  // Do a bunch of stuff with p
+
+  return new Projection(p, i));
+}
+
+[NotNull]
+private IEnumerable<string> CreateReport([NotNull] IEnumerable<Projection> projections)
+{
+  if (projections == null) { throw new ArgumentNullException(nameof(projections)); }
+
+  return projections.Select(p => string.Format($"Some text with a {p}"));
+}
+
+private void StoreReport([NotNull] IEnumerable<string> lines)
+{
+  if (lines == null) { throw new ArgumentNullException(nameof(lines)); }
+
+  File.WriteAllLines(OutputPath, lines);
+}
+```
+This version obviously needs no comments: it is now clear what `MethodOne` does. In fact, we can streamline `MethodOne` to a single line without losing legibility. Using the syntactic constructs of the language eliminates the need for many, if not all, comments.
+```csharp
+public void MethodOne()
+{
+  StoreReport(CreateReport(CalculateFinalProjections()));
+}
+```
+
+### Convert to Variables
+
+Replace comments with local variables with descriptive names.
+
+```csharp
+// For new lessons that are within the time-span or not scheduled
+if (!lesson.Stored && ((StartTime <= lesson.StartTime && lesson.EndTime <= EndTime) || !lesson.Scheduled)) { }
+```
+With local variables, however, the logic is much clearer and no comment is required:
+```csharp
+bool lessonInTimeSpan = StartTime <= lesson.StartTime && lesson.EndTime <= EndTime;
+
+if (!lesson.Stored && (lessonInTimeSpan || !lesson.Scheduled)) { }
+```

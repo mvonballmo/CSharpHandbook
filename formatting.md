@@ -1,6 +1,6 @@
 # Formatting
 
-## Whitespace & Symbols
+## Whitespace and Symbols
 
 ### Blank Lines
 
@@ -176,7 +176,7 @@ Do not place an empty line in the following places:
   result.Messages.Log(
     Level.Error,
     String.Format(
-      "Class [{0}] has the same metaid as class [{1}].",
+      "Class [{0}] has the same name as class [{1}].",
       dbCls.Identifier,
       classMap[cls.MetaId]
     )
@@ -368,18 +368,18 @@ The type is usually optional (unless you’re initializing an empty array), so y
     @"FROM person
         LEFT JOIN
           employee
-            ON person.employeeid = employee.id
+            ON person.employee_id = employee.id
         LEFT JOIN
           company
-            ON person.companyid = company.id
+            ON person.company_id = company.id
         LEFT JOIN
           program
-            ON company.programid = program.id
+            ON company.program_id = program.id
         LEFT JOIN
           settings
-            ON settings.programid = program.id
+            ON settings.program_id = program.id
       WHERE
-        program.id = {0} AND person.hiredate <= '{2}';
+        program.id = {0} AND person.hire_date <= '{2}';
     ",
     settings.ProgramId,
     state,
@@ -490,12 +490,7 @@ The type is usually optional (unless you’re initializing an empty array), so y
   }
   ```
 
-### Regions
-
-* Do not use regions.
-* A historical usage of `#region` tags is to delineate code regions to be ignored by ReSharper in generated files. Instead, tell ReSharper to ignore files with the pattern of the generated filenames (e.g. `*.Class.cs`).
-
-## Ternary and Coalescing Operators
+### Ternary and Coalescing Operators
 
 * Do not use line-breaking to format statements containing ternary and coalescing operators; instead, convert to an `if`/`else` statement.
 * Do not use parentheses around the condition of a ternary expression. If the condition is not immediately recognizable, extract it to a local variable.
@@ -506,3 +501,13 @@ The type is usually optional (unless you’re initializing an empty array), so y
   ```csharp
   return !HasValue ? Value.ToString() : "EMPTY";
   ```
+
+### Comments
+
+* Place comments above referenced code.
+* Indent comments at the same level as referenced code.
+
+### Regions
+
+* Do not use regions.
+* A historical usage of `#region` tags is to delineate code regions to be ignored by ReSharper in generated files. Instead, tell ReSharper to ignore files with the pattern of the generated filenames (e.g. `*.Class.cs`).

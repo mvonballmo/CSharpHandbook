@@ -8,7 +8,30 @@
     "words": [
         "localizable",
         "Postgre",
-        "reticle"
+        "reticle",
+        "readonly",
+        "Linq",
+        "struct",
+        "nameof",
+        "Encodo",
+        "Quino",
+        "Winform",
+        "serializable",
+        "structs",
+        "MVVM",
+        "endregion",
+        "YAGNI",
+        "Overdesign",
+        "Silverlight",
+        "Lippert",
+        "Cyclomatic",
+        "parameterized",
+        "unmanaged",
+        "Commutativity",
+        "ifdef",
+        "Punchclock",
+        "Prepend",
+        "Roadmap"
     ],
     // flagWords - list of words to be always considered incorrect
     // This is useful for offensive words and common spelling errors.
