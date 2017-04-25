@@ -1,11 +1,11 @@
-# Deprecation
+# Managing Change
 
-## Modifying interfaces
+## Modifying Interfaces
 
 * Avoid introducing breaking changes. Wherever possible, retain old overloads/names for one extra major version.
 * Document breaking changes in the release notes, including upgrade instructions.
 
-##	Marking Members as Obsolete
+## Marking Members as Obsolete
 
 Include the version number in the message. For example:
 
@@ -28,7 +28,7 @@ In each case where such a change is to be made, the following points must be con
 
 With an agile methodology, the answer to the question “should you?” is quite often “yes”. Cleaner, tighter and more logical code is more maintainable and self-explanatory code.
 
-## Safe Obsolescence
+## Roadmap for Safe Obsolescence
 
 If the change is localized, you can of course make it right away. If not, you may need to go the long route described below:
 

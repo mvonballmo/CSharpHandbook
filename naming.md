@@ -41,6 +41,7 @@ Enumerated type | Pascal
 Enumerated element | Pascal
 Properties | Pascal
 Generic parameters | Pascal
+Tuple field | Pascal
 Public or protected `readonly` or `const` field | Pascal
 Private field | Camel with leading underscore [\[1\]](#footnote_1)
 Method argument | Camel
@@ -75,11 +76,8 @@ Event handlers | Pascal with `EventHandler` suffix
 
 A parameter name or local variable should have the same name as the type. It is valid to use shorter forms for longer type names, as long as the context is clear.
 
-IMetaExpressionFactory: can be metaExpressionFactory, expressionFactory or factory.
-
-`f` is not acceptable for parameters, but is OK for a local variable in either a short lambda or method.
-
-The following table presents the method parameter or local variable name you should use for common types in the .NET and Encodo libraries. For other types, try to follow the spirit of the naming convention by choosing complete words or known abbreviations.
+* `IMetaExpressionFactory`: can be `metaExpressionFactory`, `expressionFactory` or `factory`.
+* `f` is not acceptable for parameters, but is acceptable for a local variable in a short body.
 
 ## Structure
 
@@ -117,12 +115,13 @@ The following table presents the method parameter or local variable name you sho
 * If a class implements a single interface, it should reflect this by incorporating the interface name into its own (e.g. `MetaList` implements `IList`).
 * Static classes containing extension methods end in `Extensions`
 * All other static classes should use the suffix `Tools`.
+* `abstract` classes should use the suffix `Base`.
 
 ### Interfaces
 
 * Prefix interfaces with the letter “I”.
 
-### Enumerations
+### `enums`
 
 * Simple enumerations have singular names, whereas bit-sets  have plural names.
 
@@ -279,6 +278,7 @@ Since local variables are limited to a much smaller scope and are not documented
 * The more limited the scope, the more abbreviated the variable may be.
 * Use real words where there is enough space to do so.
 * Use single letters in lambdas where you're trying to save space.
+* Use `_` instead of declaring useless local variables during deconstruction.
 
 ### Return Values
 

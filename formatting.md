@@ -101,8 +101,12 @@ Do not place an empty line in the following places:
 #### Properties
 
 * Simple getters and setters should go on the same line as all brackets.
-* Abstract properties should have get, set and all braces on the same line
+* Abstract properties should have get, set and all braces on the same line.
 * Complex getters and setters should have each bracket on its own line.
+* Place Auto-Property Initializers on the same line.
+  ```csharp
+  public int Maximum { get; } = 45;
+  ```
 
 #### Methods
 
@@ -153,19 +157,6 @@ Do not place an empty line in the following places:
     where T : IMetaReadable
   {
     SetupLookupFromData<T>(lookupOptions, dataList, dataList.MetaClass);
-  }
-  ```
-
-### Constructors
-
-* Base constructors should be on a separate line, indented one level.
-  ```csharp
-  public class B : A
-  {
-    B(string name)
-      : base(name)
-    {
-    }
   }
   ```
 
@@ -220,6 +211,19 @@ Do not place an empty line in the following places:
       .WhereEquals(Employee.Fields.Id, employee.Id)
       .OrderBy(Employee.Fields.LastName, SortDirection.Ascending)
       .OrderBy(Employee.Fields.FirstName, SortDirection.Ascending);
+  ```
+
+### Constructors
+
+* Base constructors should be on a separate line, indented one level.
+  ```csharp
+  public class B : A
+  {
+    B(string name)
+      : base(name)
+    {
+    }
+  }
   ```
 
 ### Initializers
@@ -389,7 +393,7 @@ The type is usually optional (unless you’re initializing an empty array), so y
 * If the indenting in the string argument above is important, you may break indenting rules and place the text all the way to the left of the source in order to avoid picking up extra, unwanted spaces. However, you should consider externalizing such text to resources or text files.
 * The trailing double-quote in the example above is not required, but is permitted; in this case, the code needs to include a newline at the end of the SQL statement.
 
-### Return Statements
+### `return` Statements
 
 * If a `return` statement is not the only statement in a method, it should be separated from other code by a single newline.
 * Always use multi-line formatting for `return` statements so they're easy to see.
@@ -424,7 +428,7 @@ The type is usually optional (unless you’re initializing an empty array), so y
   return a == 1;
   ```
 
-### Switch Statements
+### `switch` Statements
 
 * Contents under `switch` statements should be indented.
 * Braces for a case-label are not indented; this maintains a nice alignment with the brackets from the switch-statement.

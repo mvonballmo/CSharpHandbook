@@ -5,8 +5,6 @@
 
 * Prefer exceptions to return codes.
 * Use a return code only where all results are valid.
-* In those cases, prefer `Tuple` results to pure return codes.
-* Unless you have a public API, where the `Tuple` should be replaced with a concrete type.
 * Use the `Try*`-pattern (illustrated below) to encapsulate methods that can fail.
 * If errors/warnings are expected, then use an `ILogger` or similar construct to record those warnings rather than throwing and multiple catching exceptions.
 
@@ -129,7 +127,6 @@ catch (NullReferenceException exception)
 The Try\* pattern is used by the .NET framework. Generally, Try\*-methods accept an `out` parameter on which to attempt an operation, returning `true` if successful.
 
 * The parameter should be named “result”. The method should be prefixed with “Try”.
-* Consider using a tuple result type instead of using an `out` parameter.
 * If you provide a method using the Try* pattern (), you should also provide a non-try-based, exception-throwing variant as well. The exception-throwing variant should call the Try* variant, never the other way around.
   ```csharp
   public IExpression Parse(string text)

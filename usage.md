@@ -25,8 +25,9 @@
 * Do not use the global namespace.
 * Avoid fully-qualified type names; use the `using` statement instead.
 * Use aliases to resolve ambiguities.
+* Use static classes where they improve clarity of code.
 
-### Defining
+#### Defining
 
 * Put abstract/high-level types in outer namespaces (e.g. `Encodo.Quino.Data`).
 * Put concrete types in inner ones (e.g. `Encodo.Quino.Data.Ado`).
@@ -45,20 +46,12 @@
 #### Abstract Classes
 
 * Define constructors for abstract classes as `protected`.
-* Consider providing a partial implementation of an abstract class that handles some of the abstraction in a standard way; implementors can use this class as a base and avoid having to repeat code in their own implementations. Such classes should use the “Base” suffix.
+* Consider providing a partial implementation of an abstract class that handles some of the abstraction in a standard way; implementors can use this class as a base and avoid having to repeat code in their own implementations.
 
 #### Static Classes
 
-* Do not mark a class as static if it has instance members.
 * Use static classes only for extension methods _or_ constants.
 * Group functionality into logical static classes.
-
-#### Sealed Classes & Methods
-
-* Do not declare protected or virtual members on sealed classes
-* Avoid sealing classes unless there is a very good reason for doing so (e.g. to improve reflection performance).
-* Consider sealing only selected members instead of sealing an entire class.
-* Consider sealing members that you have overridden if you don’t want descendants to avoid your implementation.
 
 #### Inner Classes
 
@@ -72,13 +65,12 @@ Alternatives to consider:
 * Consider using composition to inject the class instead, to allow customization and testing.
 * Consider _local methods_ as an alternative to a `private` class.
 
-#### Internal Classes & Methods
+#### Partial Classes
 
-* Wherever possible, make implementation classes `internal` to reduce the surface area of the API.
-* Prefer `private` and `protected` to `internal` methods.
-* Instead of using `internal` to mean _assembly-local_, use composition to provide access to shared functionality
+To control file size, partial classes can be useful to separate
 
-Most historical uses for `internal` methods can be implemented with other, better patterns. One use is to allow overriding of a method inside an assembly, but not outside. Two questions: why are you overriding instead of composing? And, if it's useful for your library or framework to be able to override, why deny this to consumers?
+* `private` or `protected` inner classes.
+* larger blocks of `private` or `protected` methods.
 
 ### Interfaces
 
@@ -99,7 +91,7 @@ Most historical uses for `internal` methods can be implemented with other, bette
 * Provide a standard implementation or an abstract base. This provides both an implementation example and some protection from future changes to the interface.
 * Use explicit interface implementation where appropriate to avoid expanding a class API unnecessarily.
 
-### Structs
+### `structs`
 
 Consider defining a structure instead of a class if most of the following conditions apply:
 
@@ -117,7 +109,7 @@ Use the following rules when defining a `struct`.
 * A `struct` should be valid when uninitialized so that consumers can declare an instance without calling a constructor.
 * Public fields are allowed (even encouraged) for structures used to communicate with external APIs through unmanaged code.
 
-### Enumerations
+### `enums`
 
 #### Design
 
@@ -158,6 +150,31 @@ Use the following rules when defining a `struct`.
 
 ## Members
 
+### Modifiers
+
+* The visibility modifier is required for all types, methods and fields; this makes the intention explicit and consistent.
+* The visibility keyword is always the first modifier.
+* The `const` or `readonly` keyword, if present, comes immediately after the visibility modifier.
+* The static keyword, if present, comes after the visibility modifier and readonly modifier.
+  ```csharp
+  private readonly static string DefaultDatabaseName = "admin";
+  ```
+
+#### `sealed`
+
+* Do not declare protected or virtual members on sealed classes
+* Avoid sealing classes unless there is a very good reason for doing so (e.g. to improve reflection performance).
+* Consider sealing only selected members instead of sealing an entire class.
+* Consider sealing members that you have overridden if you don’t want descendants to avoid your implementation.
+
+#### `internal`
+
+* Wherever possible, make implementation classes `internal` to reduce the surface area of the API.
+* Prefer `private` and `protected` to `internal` methods.
+* Instead of using `internal` to mean _assembly-local_, use composition to provide access to shared functionality
+
+Most historical uses for `internal` methods can be implemented with other, better patterns. One use is to allow overriding of a method inside an assembly, but not outside. Two questions: why are you overriding instead of composing? And, if it's useful for your library or framework to be able to override, why deny this to consumers?
+
 ### Declaration Order
 
 * Constructors, in descending order of complexity
@@ -172,16 +189,6 @@ Use the following rules when defining a `struct`.
 * private methods
 * private fields
 
-### Modifiers
-
-* The visibility modifier is required for all types, methods and fields; this makes the intention explicit and consistent.
-* The visibility keyword is always the first modifier.
-* The `const` or `readonly` keyword, if present, comes immediately after the visibility modifier.
-* The static keyword, if present, comes after the visibility modifier and readonly modifier.
-  ```csharp
-  private readonly static string DefaultDatabaseName = "admin";
-  ```
-
 ### Constants
 
 * Declare all constants other than `0`, `1`, `true`, `false` and `null`.
@@ -192,6 +199,8 @@ Use the following rules when defining a `struct`.
   public const int DefaultCacheSize = 25;
   public const int DefaultGranularity = DefaultCacheSize / 5;
   ```
+* Use `const` only when the value really is constant (e.g. `NumberDaysInWeek`); otherwise, use `readonly`.
+* Use `readonly` as much as possible.
 
 ### Constructors
 
@@ -392,6 +401,35 @@ In this case, Password can be set before the UserName without causing any proble
   }
   ```
 
+### Optional Parameters
+
+* Do not use optional parameters in constructors.
+* Do not use optional parameters that might change in public APIs; instead, use overloaded methods.
+* Do not use more than one or two optional parameters, even for internal APIs.
+
+This blog post [Optional argument corner cases, part four](http://blogs.msdn.com/b/ericlippert/archive/2011/05/19/optional-argument-corner-cases-part-four.aspx) by Eric Lippert discusses the problem in more detail.
+
+> [Optional arguments can lead to] fairly serious versioning issue[s]. [...] The lesson here is to think carefully about the scenario with the long term in mind. If you suspect that you will be changing a default value and you want the callers to pick up the change without recompilation, don't use a default value in the argument list; make two overloads, where the one with fewer parameters calls the other.
+
+### `tuples`
+
+* Do not use tuples with more than 3 fields.
+* In C# 7 or higher, consider using a `Tuple<T, bool>` instead of an `out` parameter.
+* In C# 6 or lower, use the Try* pattern because tuple fields cannot have names.
+* Avoid `tuple` return types for public APIs
+
+#### Naming
+
+* Always name the parameters in a tuple.
+* If the method returns a single constant tuple, then specify the names there (to keep the method declaration shorter). If there are several exit points, don't repeat the names in the literal tuples; instead, include the names only in the return-type declaration.
+* Prefer external `var (first, second, third)` declaration to the internal one `(var first, var second, var third)`
+
+#### Deconstruction
+
+* Provide a custom `deconstruct` method for structs.
+* Match the field order in a class's constructor, ToString override, and Deconstruct method.
+* Use deconstruction where appropriate to consume tuples. If the tuple has named members, then you can just use it; otherwise, use deconstruction to assign the members to variables with logical names.
+
 ### Overloads
 
 * Use overloads for methods that have similar behavior. Do not include parameter names in the method name. For example, the following is incorrect
@@ -425,12 +463,6 @@ In this case, Password can be set before the UserName without causing any proble
     // Perform update
   }
   ```
-
-### Resource Strings
-
-* Use resources for all localizable strings.
-* You should not use resources for strings that will not be localized (e.g. log messages)
-* Resource identifiers follow the same rules as all other identifiers.
 
 ### Virtual
 
@@ -568,12 +600,141 @@ public static class StoreManager
 
 ## Statements and Expressions
 
+### `base`
+
+* Use `base` only from a constructor or to call a predecessor method.
+* You may only call the `base` of the method being executed; do not call other `base` methods. In the following example, the call to `CheckProcess()` is not allowed, whereas the call to `RunProcess()` is.
+  ```csharp
+  public override void RunProcess()
+  {
+    base.CheckProcess();  // Not allowed
+    base.RunProcess();
+  }
+  ```
+
+### `this`
+
+* Use `this` only when referring to other constructors.
+* Do not use `this` to resolve name-clashes; instead, change one of the conflicting names.
+
+### Value Types
+
+* Always use the lower-case primitive type.
+  * Use `int` instead of `Int32`
+  * Use `string` instead of `String`
+  * Use `bool` instead of `Boolean`
+  * Use `short` instead of `Int16`
+  * Use `byte` instead of `Byte`
+  * Use `long` instead of `Int64`
+  * And so on.
+
+### Strings
+
+* Use `string.Empty` instead of `“”`.
+* Use `string.IsNullOrEmpty` instead of `s == null` or `s.Length == 0`.
+
+#### Concatenation
+
+* Prefer string-interpolation for C#6 or higher.
+* Prefer `string.Format` for C#5 or lower.
+* Use string-concatenation or `string.Concat` only if you have identified a performance bottleneck.
+* Use a `StringBuilder` for more complex situations or when concatenation occurs over multiple statements.
+
+### Interpolation
+
+* Prefer embedding variables rather than expressions.
+* Avoid embedding longer expressions.
+
+The following example uses short expressions and is legible.
+
+```csharp
+var s = $"The total [{total + shipping}] is higher than the balance [{balance - fees}].";
+```
+
+However, the following interpolated string isn't very easy to read.
+
+```csharp
+var s = $"The total [{allOrders.Sum(o => o.Total + (o.Tax * o.Vat.Rate)) + shipping}] is higher than the balance [{accounts.Sum(a => a.Balance) - fees}].";
+```
+
+Instead, extract variables to reduce complexity to the previous formulation.
+
+```csharp
+var total = allOrders.Sum(o => o.Total + (o.Tax * o.Vat.Rate));
+var balance = accounts.Sum(a => a.Balance);
+var s = $"The total [{total + shipping}] is higher than the balance [{balance - fees}].";
+```
+
+### `nameof`
+
+* Use `nameof` for passing names to `ArgumentExceptions`.
+* Use `nameof` wherever possible to avoid constant strings.
+
+### Resource Strings
+
+* Use resources for all localizable strings.
+* Do not use resources for strings that will not be localized (e.g. log messages)
+* Resource identifiers follow the same rules as all other identifiers.
+* Do not waste time localizing strings until code is reviewed and stable.
+
+### Floating Point and Integral Types
+
+* Be careful when comparing floating-point constants; unless you are using `decimals`, the representation will have limited precision and can lead to subtle bugs.
+* One exception to this rule is when you are comparing constants of fixed, known value (like `0.0` or `1.0`, but not `3.14`).
+* Be careful when casting representations with different sizes (e.g. `long` to `int`).
+* Use the literal `_` as a reasonable separator (e.g. to delineate hex groups or as a thousands-separator).
+
 ### Local Variables
 
 * Use `var` and initialization wherever possible.
 * Declare local variables individually.
 * Initialize a local variable on the same line as the declaration
 * Use standard line-breaking rules outline elsewhere for longer, fluent initialization.
+
+### `var`
+
+* Use `var` everywhere.
+
+The justification is that the rest of this handbook encourages a style where:
+
+* methods are small
+* parameters and variables are well-named
+
+So the types, where relevant, will be obvious from the relatively small and local context.
+
+The following examples show calls without using `var`.
+
+```csharp
+IList<Airplane> planes1 = new List<Airplane>();
+IDataList<Airplane> planes2 = connection.GetList<Airplane>();
+IDataList<Airplane> planes3 = hanger.GetAirplanes(connection);
+```
+
+In which cases is the type relevant or non-obvious? The following version using `var` only gains in clarity.
+
+```csharp
+var planes1 = new List<Airplane>();
+var planes2 = connection.GetList<Airplane>();
+var planes3 = hanger.GetAirplanes(connection);
+```
+
+## `out` variables
+
+* Use `out`-parameter declaration to define parameters.
+  ```csharp
+  if (list.TryGetValue("One", var out item))
+  {
+    // use 'item'
+  }
+  ```
+  For C# 5 and older, use the standalone variable declaration.
+  ```csharp
+  Item item;
+  if (list.TryGetValue("One", out item))
+  {
+    // use 'item'
+  }
+  ```
 
 ### Loops
 
@@ -771,9 +932,47 @@ public static class StoreManager
 * Use these operators for simple expressions and results.
 * Do not use these operators with long conditions and values. Instead, use local variables and/or standard conditional statements.
 
+### Null-conditional Operator
+
+* Use the `?.`-operator only when no handling for `null` cases is required.
+* Most code should not use this operator; instead, enforce non-null values.
+
+For example, the following example is only allowed when the data comes from a dynamic source (e.g. JSON).
+
+```csharp
+company.People?[0]?.ContactInfo?.BusinessAddress.Street
+```
+
+If the data is not dynamic, then `People`, `ContactInfo` and `BusinessAddress` should never be `null`.
+
 ### Lambdas
 
 * Do not make overly-complex lambda expressions; instead, define a method or use a delegate.
+
+### System.Linq
+
+* Pay attention to the order of your Linq expressions to improve performance.
+  * Filter before sorting
+  * Apply filters that are likely to remove more items first
+  * Apply filters with low performance impact first
+* Do not use `List.Foreach()`.
+* Use multiple lines and indenting to to make expressions more legible.
+  ```csharp
+  var result = elements
+    .Where(e => e.Enabled)
+    .Where(e => LastUsed > clock.Now.AddWeeks(-2))
+    .OrderBy(e => e.LastUsed)
+    .ThenBy(e => e.Name);
+  ```
+  Here `Enabled` is tested first because it's cheaper to check.
+* Use Linq syntax to share temporary variables instead of re-declaring them in several lambdas.
+  ```csharp
+  var result =
+    from e in elements
+    where e.Enabled
+    where e.LastUsed > clock.Now.AddWeeks(-2)
+    orderby e.LastUsed, e.Name;
+  ```
 
 ### Casting
 
@@ -828,6 +1027,12 @@ public static class StoreManager
 
   return NullTurn.Default;
   ```
+
+### `checked`
+
+* Enable range-checking during development and debugging.
+* Disable range-checking in release builds only if there is a valid performance reason for doing so.
+* Use explicit `checked` blocks for overflow- and underflow-prone operations. I.e. if there was a range-checking problem at some point, the block should be marked with a `checked` block. This guarantees checking for these blocks even when range-checking is disabled.
 
 ### Compiler Variables
 
