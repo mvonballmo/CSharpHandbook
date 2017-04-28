@@ -23,6 +23,24 @@
 * A name should be as **short** as possible.
 * A name communicates **intent**; prefer `UpdatesAutomatically` to `AutoUpdate`.
 * A name reflects **semantics**, not storage details; prefer `InterestRate` to `DecimalRate`.
+* A name should include explicit **units** where possible. The following property isn't clearly defined.
+  ```csharp
+  public Timeout { get; } = 3600;
+  ```
+  This looks like a timeout of either an hour or 3.6 seconds. Timeouts are _usually_ expression in milliseconds. We can fix this with documentation.
+  ```csharp
+  /// <summary>
+  /// The number of milliseconds to wait before aborting the operation.
+  /// </summary>
+  public Timeout { get; } = 3600;
+  ```
+  This is a good start. Even better is to include the units in the name of the property.
+  ```csharp
+  /// <summary>
+  /// The number of milliseconds to wait before aborting the operation.
+  /// </summary>
+  public TimeoutInMilliseconds { get; } = 3600;
+  ```
 
 ## Case
 
@@ -43,7 +61,7 @@ Properties | Pascal
 Generic parameters | Pascal
 Tuple field | Pascal
 Public or protected `readonly` or `const` field | Pascal
-Private field | Camel with leading underscore [\[1\]](#footnote_1)
+Private field | Camel with leading underscore
 Method argument | Camel
 Local variable | Camel
 Attributes | Pascal with `Attribute` suffix

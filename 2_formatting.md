@@ -430,6 +430,8 @@ The type is usually optional (unless you’re initializing an empty array), so y
 
 ### `switch` Statements
 
+The following rules apply for all `switch` statements, including pattern-matching.
+
 * Contents under `switch` statements should be indented.
 * Braces for a case-label are not indented; this maintains a nice alignment with the brackets from the switch-statement.
 * Use braces for longer code blocks under case-labels; leave a blank line above the break-statement to improve clarity.

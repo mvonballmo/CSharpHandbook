@@ -2,6 +2,21 @@
 
 ## Structure
 
+### Assemblies
+
+* Use a separate assembly to improve decoupling and reduce dependencies.
+* Top-level application assemblies should have as little code as possible. Most logic goes in class libraries.
+
+The example below illustrates the projects for a solution called “Calculator” with a _WPF_ application, a web-API application and a console application.
+* `Calculator.Core`
+* `Calculator.Core.Web`
+* `Calculator.Core.Wpf`
+* `Calculator.Web.Api`
+* `Calculator.Wpf`
+* `Calculator.Console`
+
+The first three define libraries of functionality that is used by the next four applications. The server and console only use the `Calculator.Core` library whereas the _Winform_ and _WPF_ applications use their respective libraries. Separating the renderer-dependent code into a separate library makes it much easier to add another application using the same renderer but performing a slightly different task. Only highly application-dependent code should be defined directly in an application project.
+
 ### Files
 
 * Place each type (classes, interfaces, enums, etc.) in a separate file.
@@ -50,7 +65,7 @@
 
 #### Static Classes
 
-* Use static classes only for extension methods _or_ constants.
+* Use static classes only for extension methods _or_ constants, but not both.
 * Group functionality into logical static classes.
 
 #### Inner Classes
@@ -69,6 +84,7 @@ Alternatives to consider:
 
 To control file size, partial classes can be useful to separate
 
+* Generated code.
 * `private` or `protected` inner classes.
 * larger blocks of `private` or `protected` methods.
 
@@ -108,6 +124,13 @@ Use the following rules when defining a `struct`.
 * Overload operators and equality as expected; implement `IEquatable` instead of overriding `Equals` in order to avoid the negative performance impact of boxing and un-boxing the value.
 * A `struct` should be valid when uninitialized so that consumers can declare an instance without calling a constructor.
 * Public fields are allowed (even encouraged) for structures used to communicate with external APIs through unmanaged code.
+
+## Generics
+
+* Use generic collection types (e.g. use `IList<T>` instead of `IList`).
+* Use generic constraints instead of casting or using the `is`-operator.
+* Use interfaces as generic constraints wherever possible.
+* When inheriting from both a generic and non-generic interface (e.g. `IEnumerable` and `IEnumerable<T>`), implement the non-generic version explicitly and implement it using the generic interface.
 
 ### `enums`
 
@@ -382,6 +405,22 @@ In this case, Password can be set before the UserName without causing any proble
   }
   ```
 
+### Extension Methods
+
+* Use extension methods for methods that can be defined in terms of public members of that interface.
+* Do so only for methods for which the implementation is certain to be the same for all implementations. That is, do not restrict an implementation’s efficiency because an extension instead of interface method was used.
+* Do not extend `object` or `string` in commonly used namespaces.
+* Do not mix extension methods with other static methods. If a class contains extension methods, it should contain only extension methods and private support methods.
+* Do not mix extension methods for different types in one class.
+* Define useful, but more rarely used extension methods in a separate namespace or assembly to force callers to "opt in".
+
+#### Bodies
+
+* Do not _make decisions_ in extension methods. Instead, declare components and inject them where needed.
+* Do not use static code that does _make decisions_ in extension methods.
+* Do not use a global service locator in extension methods.
+* Do not pass an IOC to extension methods.
+
 ### Parameters
 
 * Use at most 5 parameters per method. Otherwise, use a `class`, `struct` or `tuple`.
@@ -410,6 +449,12 @@ In this case, Password can be set before the UserName without causing any proble
 This blog post [Optional argument corner cases, part four](http://blogs.msdn.com/b/ericlippert/archive/2011/05/19/optional-argument-corner-cases-part-four.aspx) by Eric Lippert discusses the problem in more detail.
 
 > [Optional arguments can lead to] fairly serious versioning issue[s]. [...] The lesson here is to think carefully about the scenario with the long term in mind. If you suspect that you will be changing a default value and you want the callers to pick up the change without recompilation, don't use a default value in the argument list; make two overloads, where the one with fewer parameters calls the other.
+
+### Expression-bodied Members
+
+* Use expression-bodied members for simple properties and methods.
+* The same rules apply as for any other expression; use a standard property or method body for complex logic.
+* Do not use expression-bodied members for constructors and finalizers.
 
 ### `tuples`
 
@@ -598,6 +643,13 @@ public static class StoreManager
 * Use `implicit` operators _only_ where the conversion _cannot_ result in a loss of data or an exception.
 * Use an `explicit` operator where data-loss or exceptions are possible.
 
+### `ref` Returns and Properties
+
+`ref` returns are a feature that can improve memory-management in applications that uses larger structures. Taking references avoids copying values where not necessary.
+
+* Use ref properties for mutable structs.
+* Do not use ref properties for immutable structs or read-only classes.
+
 ## Statements and Expressions
 
 ### `base`
@@ -690,6 +742,14 @@ var s = $"The total [{total + shipping}] is higher than the balance [{balance - 
 * Declare local variables individually.
 * Initialize a local variable on the same line as the declaration
 * Use standard line-breaking rules outline elsewhere for longer, fluent initialization.
+
+### Local Functions
+
+* Use local functions for short private methods that are used only once.
+* If a local function body must be repeated, then use a private method instead.
+* Use local functions instead of anonymous functions.
+* Use local iterators when returning an IEnumerator when parameters need to be validated.
+* Put local functions at the beginning or end of its containing body.
 
 ### `var`
 
@@ -919,6 +979,10 @@ var planes3 = hanger.GetAirplanes(connection);
   }
   ```
 
+### Pattern-matching
+
+* The same rules apply for `when` expressions as for other conditions: short expressions are fine; extract more complex logic to local or private methods.
+
 ### `goto` Statements
 
 * Do not use `goto`.
@@ -944,6 +1008,12 @@ company.People?[0]?.ContactInfo?.BusinessAddress.Street
 ```
 
 If the data is not dynamic, then `People`, `ContactInfo` and `BusinessAddress` should never be `null`.
+
+#### `throw`-Expressions
+
+* Only use `throw`-expressions at the end of an expression.
+* Do not use `throw`-expressions anywhere else in an compound expression.
+* Do not use `throw`-expressions as actual arguments.
 
 ### Lambdas
 

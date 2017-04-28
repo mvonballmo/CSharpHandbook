@@ -50,6 +50,30 @@ The most common exceptions in C# are bugs.
 * `NotSupportedException`
 * `NotImplementedException`
 
+## Design-by-Contract
+
+Use assertions at the beginning of a method to assert preconditions; assert post-conditions where appropriate.
+
+* Throw `ArgumentNullExceptions` for preconditions and post-conditions.
+* Do not use `Debug.Assert`.
+* Do not remove constracts in release code unless you can prove a performance issue.
+* Throw the exception on the same line as the check, to mirror the formatting of the assertion.
+  ```csharp
+  if (connection == null) { throw new ArgumentNullException("connection"); }
+  ```
+* If the assertion cannot be formulated in code, add a comment describing it instead.
+* All methods and properties used to test pre-conditions must have the same visibility as the method being called.
+
+## Throwing Exceptions
+
+* If a member cannot satisfy its post-condition (or, absent a post-condition, fulfill the promise implied in its name or specified in its documentation), it should throw an exception.
+* Use standard exceptions.
+* Never throw `Exception`. Instead, use one of the standard .NET exceptions when possible. These include `InvalidOperationException`, `NotSupportedException`, `ArgumentException`, `ArgumentNullException` and `ArgumentOutOfRangeException`.
+* When using an `ArgumentException` or descendent thereof, make sure that the `ParamName` property is non-empty.
+* Your code should not explicitly or implicitly throw `NullReferenceException`, `System.AccessViolationException`, `System.InvalidCastException`, or `System.IndexOutOfRangeException` as these indicate implementation details and possible attack points in your code. These exceptions are to be avoided with pre-conditions and/or argument-checking and should never be documented or accepted as part of the contract of a method.
+* Do not throw `StackOverflowException` or `OutOfMemoryException`; these exceptions should only be thrown by the runtime.
+* Do not explicitly throw exceptions from `finally` blocks (implicit exceptions are fine).
+
 ## Catching Exceptions
 
 * Do not handle bugs.
@@ -104,16 +128,6 @@ catch (NullReferenceException exception)
 * Only implement serialization for exceptions if you're going to use it.
 * If an exception must be able to work across network boundaries, then it must be serializable.
 * Do not cause exceptions during the construction of another exception (this sometimes happens when formatting custom messages) as this will subsume the original exception and cause confusion.
-
-## Throwing Exceptions
-
-* If a member cannot satisfy its post-condition (or, absent a post-condition, fulfill the promise implied in its name or specified in its documentation), it should throw an exception.
-* Use standard exceptions where possible.
-* Never throw `Exception`. Instead, use one of the standard .NET exceptions when possible. These include `InvalidOperationException`, `NotSupportedException`, `ArgumentException`, `ArgumentNullException` and `ArgumentOutOfRangeException`.
-* When using an `ArgumentException` or descendent thereof, make sure that the `ParamName` property is non-empty.
-* Your code should not explicitly or implicitly throw `NullReferenceException`, `System.AccessViolationException`, `System.InvalidCastException`, or `System.IndexOutOfRangeException` as these indicate implementation details and possible attack points in your code. These exceptions are to be avoided with pre-conditions and/or argument-checking and should never be documented or accepted as part of the contract of a method.
-* Do not throw `StackOverflowException` or `OutOfMemoryException`; these exceptions should only be thrown by the runtime.
-* Do not explicitly throw exceptions from `finally` blocks (implicit exceptions are fine).
 
 ### Wrapping Exceptions
 
