@@ -24,7 +24,7 @@ It is also a complete overhaul in both content and structure to provide maximum 
 
 |Version |  Date | Author | Comments
 | --- | --- | --- | ---
-| 7.0.0 | Unreleased | MvB | Converted the manual from Microsoft Word to Markdown format; rewrote most chapters; removed redundancy; upgraded all styles/patterns from C# 3.5 to C# 7; matched version number to language-version number
+| 7.0.0 | 29.04.2017 | MvB | Converted the manual from Microsoft Word to Markdown format; rewrote most chapters; removed redundancy; upgraded all styles/patterns from C# 3.5 to C# 7; matched version number to language-version number
 | 2.0.0 | Unreleased | MvB | Updated text throughout the “1 − General” and “2 − Design Guide” sections; added “7.17 − Using System.Linq”, “7.29 − Refactoring Names and Signatures” and “7.30 − Loose vs. Tight Coupling” best practices;
 | 1.5.3 | Unreleased | MvB | Added reference and notes from “The Little Manual of API Design”; added section “7.15 – Using Partial Classes”.
 | 1.5.2 | 19.10.2009 | MvB | Expanded “8.1 – Documentation” with examples; added more tips to the “2.3 – Interfaces vs. Abstract Classes” section; added “7.21 – Restricting Access with Interfaces”; added “5.3.7 – Extension Methods” and “7.18 – Using Extension Methods”.
