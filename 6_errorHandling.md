@@ -211,7 +211,6 @@ From this message the problem is clear and the user has many clues as to how to 
 
 * Log all exceptions.
 * Include technical detail in a separate message in the exception (e.g. stored in the `Data` array with a standard key).
-*
 * Lower-level, developer messages should be logged to sources that are available only to those with permission to view lower-level details.
 * Applications should avoid showing sensitive information to end-users. This applies especially to web applications, which must never show exception traces in production code. The exact message returned by an exception can vary depending on the permission level of the executing code.
 * If data included in a message _could_ be empty, consider wrapping it in braces so that the message is clear even when the data is empty. For example, the following code might produce a confusing error message:
